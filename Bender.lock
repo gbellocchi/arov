@@ -95,8 +95,8 @@ packages:
       Git: "https://github.com/pulp-platform/event_unit_flex.git"
     dependencies: []
   hwpe-generated-ex:
-    revision: 3fa00585882b09232c25d31db1ded0565724d43f
-    version: 1.0.0
+    revision: 0e3c57855080074761881f3063b21dfd4b8ddf97
+    version: ~
     source:
       Git: "git@git.hipert.unimore.it:comp4drones/HERO/hwpe-generated-ex.git"
     dependencies: []
@@ -118,7 +118,7 @@ packages:
       - icache-intc
       - scm
   overlay_cluster:
-    revision: 9414769e8dcc6d14bb33579735c8004466110141
+    revision: 5ba59ad709468ad9ee20776e37e465ffeb9771b9
     version: ~
     source:
       Git: "git@git.hipert.unimore.it:comp4drones/HERO/overlay_cluster.git"
@@ -135,6 +135,7 @@ packages:
       - per2axi
       - riscv
       - timer_unit
+      - hwpe_gen
   per2axi:
     revision: 3095411ea20f8f97cb72f0febff07a74e69b5d14
     version: ~
