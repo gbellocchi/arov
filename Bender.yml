@@ -1,6 +1,6 @@
 package:
-  name: hero
-  authors: [ "Andreas Kurth <akurth@iis.ee.ethz.ch>" ]
+  name: genov
+  authors: [ "Gianluca Bellocchi <gianluca.bellocchi@unimore.it>" ]
 
 dependencies:
   axi2apb: { git: "https://github.com/pulp-platform/axi2apb.git", rev: atop }

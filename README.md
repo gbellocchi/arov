@@ -1,6 +1,35 @@
 # Overlay Generator (GenOv)
 Contains all the open-source hardware involved in the overlay, together with the automated flow to generate wrapper interfaces for application-specific hardware accelerators. The hardware is managed by [bender](https://github.com/fabianschuiki/bender) for which a recent version can be installed by running `make` in this directory.
 
+## Introduction
+### Description
+
+## Getting Started
+
+### Clone the Repository
+The overlay generator should be cloned at first:
+```
+git clone git@iis-git.ee.ethz.ch:gianluca.bellocchi/genov.git
+```
+
+### External Sources
+The tool uses Git submodules that have to be initialized. In order to fetch the submodules in the repository, run:
+```
+make init_gen
+```
+
+### Python Virtual Environment
+To manage the project's dependencies a Python virtual environment is employed. To initialize it and download the required packages (see 'requirements.txt'), run:
+```
+make init_py_env
+```
+
+This command manages the installation of the required Python packages, including the Mako template library [6] that is employed for the templating operation.
+In case of an update of the package requirements, it is possible to 'activate' the virtual environment, install the package and subsequently run:
+```
+make update_reqs_py_venv
+```
+
 ## Overlay generation
 *draft*
 - why overlay_clsuter repo?
