@@ -1,5 +1,7 @@
 /.bender/
 /bender
+Bender.local
+
 /component.xml
 /xgui
 

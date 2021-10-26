@@ -1,4 +1,0 @@
-[submodule "genacc"]
-	path = genacc
-	branch = beta-uniss
-	url = git@git.hipert.unimore.it:comp4drones/HERO/genacc.git
