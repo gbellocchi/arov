@@ -118,7 +118,7 @@ packages:
       - icache-intc
       - scm
   overlay_cluster:
-    revision: 5ba59ad709468ad9ee20776e37e465ffeb9771b9
+    revision: single_ip
     version: ~
     source:
       Git: "git@git.hipert.unimore.it:comp4drones/HERO/overlay_cluster.git"
@@ -135,7 +135,7 @@ packages:
       - per2axi
       - riscv
       - timer_unit
-      - hwpe_gen
+      - hwpe-generated-ex
   per2axi:
     revision: 3095411ea20f8f97cb72f0febff07a74e69b5d14
     version: ~
