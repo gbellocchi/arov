@@ -1,0 +1,32 @@
+Add this piece of elctronics in the MAC_engine in order to
+implement the feedback node:
+
+logic [31:0] mac_par_data;
+  always_comb
+  begin
+    assign mac_par_data = ( cnt_out > 0 ) ? ( d_o.data ) : ( ctrl_i.mac_par_V ) ;
+  end
+
+The MAC module should be instantiated in this way:
+
+MAC i_MAC (
+    // Global signals
+    .ap_clk             ( clk_i            ),
+    .ap_rst_n           ( rst_ni           ),
+    // Input data (to-hwpe)
+    .x1_V_TDATA  ( a_i.data  ), .x1_V_TVALID ( a_i.valid ), .x1_V_TREADY ( a_i.ready ),
+    .x2_V_TDATA  ( b_i.data  ), .x2_V_TVALID ( b_i.valid ), .x2_V_TREADY ( b_i.ready ),
+    // Output data (from-hwpe)
+    .y_mul_V_TDATA  ( c_o.data  ), .y_mul_V_TVALID ( c_o.valid ), .y_mul_V_TREADY ( c_o.ready ),
+    .y_mac_V_TDATA  ( d_o.data  ), .y_mac_V_TVALID ( d_o.valid ), .y_mac_V_TREADY ( d_o.ready ),
+    // Algorithm parameters
+    .mac_par_V        (   mac_par_data    ),
+    // Control signals
+    .ap_start           ( ctrl_i.start     ),
+    .ap_done            ( done             ),
+    .ap_idle            ( idle             ),
+    .ap_ready           ( ready            )
+);
+
+At the moment it is not possible to implement this using the tool, but 
+it will be available asap in future releases.

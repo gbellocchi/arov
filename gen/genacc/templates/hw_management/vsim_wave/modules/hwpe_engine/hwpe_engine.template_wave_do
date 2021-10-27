@@ -1,0 +1,46 @@
+<%
+#################
+## HWPE engine ##
+#################
+%>
+
+<%def name="vsim_waves_hwpe_engine()">\
+
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {global} -label {clk_i} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/clk_i}
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {global} -label {rst_ni} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/rst_ni}
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {global} -label {test_mode_i} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/test_mode_i}
+
+% for i in range (n_sink):
+    % if (is_parallel_in[i]):
+        % for k in range (in_parallelism_factor[i]):
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {Input data} -group {${stream_in[i]}_${k}} -label {Valid} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/${stream_in[i]}_${k}_i/valid}
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {Input data} -group {${stream_in[i]}_${k}} -label {Data} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/${stream_in[i]}_${k}_i/data}
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {Input data} -group {${stream_in[i]}_${k}} -label {Ready} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/${stream_in[i]}_${k}_i/ready}
+        % endfor
+    % else:
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {Input data} -group {${stream_in[i]}} -label {Valid} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/${stream_in[i]}_i/valid}
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {Input data} -group {${stream_in[i]}} -label {Data} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/${stream_in[i]}_i/data}
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {Input data} -group {${stream_in[i]}} -label {Ready} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/${stream_in[i]}_i/ready}
+    % endif
+% endfor 
+
+% for j in range (n_source):
+    % if (is_parallel_out[j]):
+      % for k in range (out_parallelism_factor[j]):
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {Output data} -group {${stream_out[j]}_${k}} -label {Valid} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/${stream_out[j]}_${k}_o/valid}
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {Output data} -group {${stream_out[j]}_${k}} -label {Data} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/${stream_out[j]}_${k}_o/data}
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {Output data} -group {${stream_out[j]}_${k}} -label {Ready} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/${stream_out[j]}_${k}_o/ready}
+      % endfor
+    % else:
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {Output data} -group {${stream_out[j]}} -label {Valid} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/${stream_out[j]}_o/valid}
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {Output data} -group {${stream_out[j]}} -label {Data} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/${stream_out[j]}_o/data}
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {Output data} -group {${stream_out[j]}} -label {Ready} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/${stream_out[j]}_o/ready}
+    % endif
+% endfor 
+
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {FSM - control} -label {ctrl_i} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/ctrl_i}
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {FSM - flags} -label {flags_o} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/flags_o}
+
+add wave -noupdate -group {HWPE ${target}} -group {hwpe_${target}_engine} -group {Local} {/pulp_tb/dut/gen_clusters[0]/gen_cluster_sync/i_cluster/i_ooc/i_bound/hwpe_gen/hwpe_wrap_i/i_hwpe_top_wrap/i_${target}_top/i_engine/*}
+
+</%def>\

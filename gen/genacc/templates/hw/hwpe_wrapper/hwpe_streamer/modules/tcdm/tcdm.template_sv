@@ -1,0 +1,19 @@
+<%
+##################################
+## Library of components - TCDM ##
+##################################
+%>
+
+<%
+######################
+## TCDM - Interface ##
+######################
+%>
+
+<%def name="tcdm_intf()">\
+
+  // TCDM interface 
+
+  hwpe_stream_intf_tcdm.master tcdm [MP-1:0],
+
+</%def>\

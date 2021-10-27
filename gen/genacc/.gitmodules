@@ -1,0 +1,9 @@
+[submodule "static/static_rtl/hwpe-ctrl"]
+	path = static/static_rtl/hwpe-ctrl
+	url = git@github.com:gbellocchi/hwpe-ctrl.git
+[submodule "static/static_rtl/hwpe-stream"]
+	path = static/static_rtl/hwpe-stream
+	url = git@github.com:gbellocchi/hwpe-stream.git
+[submodule "verif/hwpe-tb"]
+	path = verif/hwpe-tb
+	url = git@github.com:gbellocchi/hwpe-tb.git

@@ -1,0 +1,87 @@
+/*
+ *
+ * Copyright (C) 2018 ETH Zurich, University of Bologna
+ * Copyright and related rights are licensed under the Solderpad Hardware
+ * License, Version 0.51 (the "License"); you may not use this file except in
+ * compliance with the License.  You may obtain a copy of the License at
+ * http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+ * or agreed to in writing, software, hardware and materials distributed under
+ * this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ * HWPE author: Francesco Conti <fconti@iis.ee.ethz.ch>
+ * HWPE specialization tool: Gianluca Bellocchi <gianluca.bellocchi@unimore.it>
+ *
+ * Module: ${target}_streamer.sv
+ * 
+ */
+
+import ${target}_package::*;
+import hwpe_stream_package::*;
+
+module ${target}_streamer
+#(
+  parameter int unsigned MP  = ${n_tcdm_ports}, // number of master ports
+  parameter int unsigned FD  = 2 // FIFO depth
+)
+(
+  // Global signals
+  ${port('clk', 'logic', 1, False)},\
+  ${port('rst', 'logic', 1, False, True)},
+  ${port('test_mode', 'logic', 1, False)},
+
+  // Local enable & clear
+  ${port('enable', 'logic', 1, False)},\
+  ${port('clear', 'logic', 1, False)},\
+
+  <%
+  ####################
+  ## TCDM interface ##
+  ####################
+  %>
+
+  ${ tcdm_intf() }
+
+  <%
+  #########################
+  ## Streaming interface ##
+  #########################
+  %>
+
+  ${ streaming_intf() }
+
+  // control channel
+  input  ctrl_streamer_t  ctrl_i,
+  output flags_streamer_t flags_o
+);
+
+  <%
+  ############################
+  ## Interfaces and signals ##
+  ############################
+  %>
+
+  ${ fifo_tcdm_ready_signs() }
+  ${ fifo_tcdm_intf_post_fifo() }
+  ${ fifo_stream_intf_pre_fifo() }
+  
+  <%
+  ##########
+  ## FIFO ##
+  ##########
+  %>
+
+  ${ fifo_tcdm_side() }
+  ${ fifo_engine_side() }
+
+  <%
+  #######################
+  ## Streaming modules ##
+  #######################
+  %>
+
+  ${ streaming_source_sink()}
+
+endmodule\
+

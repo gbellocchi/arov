@@ -1,5 +1,5 @@
 package:
-  name: genacc
+  name: gen
   authors: [ "Gianluca Bellocchi <gianluca.bellocchi@unimore.it>" ]
 
 dependencies:

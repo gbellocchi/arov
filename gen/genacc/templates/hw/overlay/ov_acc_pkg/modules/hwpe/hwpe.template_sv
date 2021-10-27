@@ -1,0 +1,63 @@
+<%
+##############################################################
+## Library of components - System-level integration of HWPE ##
+##############################################################
+%>
+
+<%
+###########################################################
+## System-level integration of HWPE - Basic declaration  ##
+###########################################################
+%>
+
+<%def name="hwpe_is_present()">\
+
+  localparam bit          HWPE_PRESENT = 1'b1;
+
+</%def>\
+
+<%
+###########################################################
+## System-level integration of HWPE - TCDM master ports  ##
+###########################################################
+%>
+
+<%def name="hwpe_master_ports()">\
+
+  <%
+    # Number of HWPE master ports attached to the loagrithmic interconnect.
+    n_ports = 0
+  %>
+
+  % for i in range (n_sink):
+    % if (is_parallel_in[i]):
+      % for i in range (in_parallelism_factor[i]):
+        <%  
+          n_ports += 1
+        %>
+      % endfor
+    % else:
+      <%  
+        n_ports += 1
+      %>
+    % endif
+  % endfor
+
+  % for j in range (n_source):
+    % if (is_parallel_out[j]):
+      % for j in range (out_parallelism_factor[j]):
+        <%  
+          n_ports += 1
+        %>
+      % endfor
+    % else:
+      <%  
+        n_ports += 1
+      %>
+    % endif
+  % endfor
+
+  localparam int unsigned N_HWPE_PORTS = ${n_ports}; // TODO: will be parametrized at overlay-level in the methodology since will depend on the overall number of accelerators
+
+</%def>\
+

@@ -1,0 +1,43 @@
+<%
+##############################################
+## Library of components - HWPE programming ##
+##############################################
+%>
+
+<%
+#######################################
+## HWPE programming - Initialization ##
+#######################################
+%>
+
+<%def name="hwpe_exec()">\
+
+  /* HWPE execution */
+
+  // Being RTL simualtion very slow, a single data stripe is processed 
+  // in order to assess the functionality of the ${target} DUT.
+
+  printf("HWPE execution - Start!\n");
+
+  // Trigger execution
+  hwpe_trigger_job();
+
+</%def>\
+
+<%
+##########################################
+## HWPE programming - ULOOP programming ##
+##########################################
+%>
+
+<%def name="hwpe_eu_progr()">\
+
+  /* Event unit programming */
+
+  // Set bit of event mask corresponding to the HWPE event. 
+  // If this change, modify ARCHI_HWPE_EU_OFFSET in archi_hwpe.h
+  eu_evt_maskWaitAndClr(1 << ARCHI_HWPE_EU_OFFSET);
+
+  printf("DUT end of execution!\n");
+
+</%def>\

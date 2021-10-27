@@ -1,0 +1,40 @@
+<%
+################################################
+## Library of components - Standard registers ##
+################################################
+%>
+
+<%
+#############################################
+## Standard registers - Offset declaration ##
+#############################################
+%>
+
+<%def name="standard_regs(addr_current)">\
+
+  parameter int unsigned ${target.upper()}_REG_NB_ITER              = ${addr_current};
+
+        <%  
+          addr_current += 1
+        %>
+
+  parameter int unsigned ${target.upper()}_REG_SHIFT_LINESTRIDE     = ${addr_current};
+
+        <%  
+          addr_current += 1
+        %>
+
+  parameter int unsigned ${target.upper()}_REG_SHIFT_TILESTRIDE     = ${addr_current};
+
+        <%  
+          addr_current += 1
+        %>
+
+  % for j in range (n_source):
+  parameter int unsigned ${TARGET}_REG_CNT_LIMIT_${stream_out[j].upper()}     = ${addr_current};
+        <%  
+          addr_current += 1
+        %>
+  % endfor
+
+</%def>\

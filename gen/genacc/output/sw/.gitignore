@@ -1,0 +1,10 @@
+# Ignore everything
+*.slm
+*.ll
+*.deps
+*.dis
+*sw
+
+# git files
+!.gitignore
+!.gitkeep

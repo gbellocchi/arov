@@ -1,8 +1,7 @@
 # Overlay Generator (GenOv)
-Contains all the open-source hardware involved in the overlay, together with the automated flow to generate wrapper interfaces for application-specific hardware accelerators. The hardware is managed by [bender](https://github.com/fabianschuiki/bender) for which a recent version can be installed by running `make` in this directory.
+The repository comprises all the open-source hardware involved in the overlay, together with the automated flow to generate wrapper interfaces for application-specific hardware accelerators and system components.
 
 ## Introduction
-### Description
 
 ## Getting Started
 
@@ -12,23 +11,25 @@ The overlay generator should be cloned at first:
 git clone git@iis-git.ee.ethz.ch:gianluca.bellocchi/genov.git
 ```
 
+### Structure of the Repository
+The repository comprises two main sections:
+
+-  `gen/` - This location comprises the necessary items to generate system components and accelerator wrappers.
+-  `ov/` - This location comprises the RTL components of the hardware overlay, together with all the necessary items to target system verification and invoke the FPGA build flow. 
+
 ### External Sources
-The tool uses Git submodules that have to be initialized. In order to fetch the submodules in the repository, run:
+Version control is managed through [bender](https://github.com/fabianschuiki/bender#configuration-format-benderyml-benderlocal) on both of them. To locally install the tool, run:
+```sh
+ make bender
 ```
+
+Then, to initialize the generation subsystem, run:
+```sh
 make init_gen
 ```
 
-### Python Virtual Environment
-To manage the project's dependencies a Python virtual environment is employed. To initialize it and download the required packages (see 'requirements.txt'), run:
-```
-make init_py_env
-```
-
-This command manages the installation of the required Python packages, including the Mako template library [6] that is employed for the templating operation.
-In case of an update of the package requirements, it is possible to 'activate' the virtual environment, install the package and subsequently run:
-```
-make update_reqs_py_venv
-```
+### Set Up GenAcc
+***follow readme.md***
 
 ## Overlay generation
 *draft*

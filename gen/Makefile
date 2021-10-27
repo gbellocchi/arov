@@ -2,7 +2,7 @@
 ## Gianluca Bellocchi <gianluca.bellocchi@unimore.it> ##
 ########################################################
 
-init_genacc:
+init:
 	./../bender clone genacc \
 		-p ./
 

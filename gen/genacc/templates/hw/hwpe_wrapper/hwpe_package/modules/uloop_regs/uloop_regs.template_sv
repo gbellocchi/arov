@@ -1,0 +1,56 @@
+<%
+###########################################################
+## Library of components - Microcode processor registers ##
+###########################################################
+%>
+
+<%
+########################################################
+## Microcode processor registers - Offset declaration ##
+########################################################
+%>
+
+<%def name="uloop_regs(addr_current)">\
+
+  /* Microcode processor */
+
+  // offset indeces -- this should be aligned to the microcode compiler of course!
+  % for i in range (n_sink):
+  parameter int unsigned ${target.upper()}_UCODE_${stream_in[i].upper()}_OFFS               = ${addr_current+i};
+  % endfor 
+
+        <%  
+          addr_current += n_sink
+        %>
+
+  % for j in range (n_source):
+  parameter int unsigned ${target.upper()}_UCODE_${stream_out[j].upper()}_OFFS              = ${addr_current+j};
+  % endfor 
+
+  // mnemonics -- this should be aligned to the microcode compiler of course!
+
+        <%  
+          addr_current = 0
+        %>
+
+  parameter int unsigned ${target.upper()}_UCODE_MNEM_NBITER      = ${addr_current};
+
+        <%  
+          addr_current += 1
+        %>
+
+  parameter int unsigned ${target.upper()}_UCODE_MNEM_ITERSTRIDE  = ${addr_current};
+
+        <%  
+          addr_current += 1
+        %>
+
+  parameter int unsigned ${target.upper()}_UCODE_MNEM_ONESTRIDE   = ${addr_current};
+
+        <%  
+          addr_current += 1
+        %>
+
+  parameter int unsigned ${target.upper()}_UCODE_MNEM_TILESTRIDE  = ${addr_current};
+
+</%def>\

@@ -1,0 +1,141 @@
+<%
+#######################################
+## Library of components - Streaming ##
+#######################################
+%>
+
+<%
+###########################
+## Streaming - Interface ##
+###########################
+%>
+
+<%def name="streaming_intf()">\
+
+  // Streaming interfaces
+  
+  % for i in range (n_sink):
+    % if (is_parallel_in[i]):
+      % for k in range (in_parallelism_factor[i]):
+  hwpe_stream_intf_stream.source ${stream_in[i]}_${k},
+      % endfor
+    % else:
+  hwpe_stream_intf_stream.source ${stream_in[i]},
+    % endif
+  % endfor 
+
+  % for j in range (n_source):
+    % if (is_parallel_out[j]):
+      % for k in range (out_parallelism_factor[j]):
+  hwpe_stream_intf_stream.sink ${stream_out[j]}_${k},
+      % endfor
+    % else:
+  hwpe_stream_intf_stream.sink ${stream_out[j]},
+    % endif
+  % endfor 
+
+</%def>\
+
+<%
+#############################
+## Streaming - Source/Sink ##
+#############################
+%>
+
+<%def name="streaming_source_sink()">\
+
+  // Source modules (TCDM -> HWPE)
+
+  % for i in range (n_sink):
+    % if ( is_parallel_in[i] ):
+      % for k in range ( in_parallelism_factor[i] ):
+  hwpe_stream_source #(
+    .DATA_WIDTH       ( 32 ),
+    .DECOUPLED        ( 1  ),
+        % if addr_gen_in_isprogr[i]:
+    .IS_ADDRESSGEN_PROGR  ( 1  )
+        % else:
+    .IS_ADDRESSGEN_PROGR  ( 0  )
+        % endif
+  ) i_${ stream_in[i] }_${k}_source (
+    .clk_i              ( clk_i                                       ),
+    .rst_ni             ( rst_ni                                      ),
+    .test_mode_i        ( test_mode_i                                 ),
+    .clear_i            ( clear_i                                     ),
+    .tcdm               ( tcdm_fifo_${stream_in[i]}_${k}              ), 
+    .stream             ( stream_fifo_${stream_in[i]}_${k}.source     ),
+    .ctrl_i             ( ctrl_i.${stream_in[i]}_${k}_source_ctrl     ),
+    .flags_o            ( flags_o.${stream_in[i]}_${k}_source_flags   ),
+    .tcdm_fifo_ready_o  ( tcdm_fifo_ready_${stream_in[i]}_${k}        )
+  );
+      % endfor
+    % else:
+  hwpe_stream_source #(
+    .DATA_WIDTH   ( 32 ),
+    .DECOUPLED    ( 1  ),
+        % if addr_gen_in_isprogr[i]:
+    .IS_ADDRESSGEN_PROGR  ( 1  )
+        % else:
+    .IS_ADDRESSGEN_PROGR  ( 0  )
+        % endif
+  ) i_${ stream_in[i] }_source (
+    .clk_i              ( clk_i                                       ),
+    .rst_ni             ( rst_ni                                      ),
+    .test_mode_i        ( test_mode_i                                 ),
+    .clear_i            ( clear_i                                     ),
+    .tcdm               ( tcdm_fifo_${stream_in[i]}                   ), 
+    .stream             ( stream_fifo_${stream_in[i]}.source          ),
+    .ctrl_i             ( ctrl_i.${stream_in[i]}_source_ctrl          ),
+    .flags_o            ( flags_o.${stream_in[i]}_source_flags        ),
+    .tcdm_fifo_ready_o  ( tcdm_fifo_ready_${stream_in[i]}             )
+  );
+    % endif
+  % endfor 
+
+  // Sink modules (TCDM <- HWPE)
+
+  % for j in range (n_source):
+    % if ( is_parallel_out[j] ):
+      % for k in range ( out_parallelism_factor[j] ):
+  hwpe_stream_sink #(
+    .DATA_WIDTH ( 32 ),
+        % if addr_gen_out_isprogr[j]:
+    .IS_ADDRESSGEN_PROGR  ( 1  )
+        % else:
+    .IS_ADDRESSGEN_PROGR  ( 0  )
+        % endif
+    // .NB_TCDM_PORTS (    )
+  ) i_${ stream_out[j] }_${k}_sink (
+    .clk_i              ( clk_i                                       ),
+    .rst_ni             ( rst_ni                                      ),
+    .test_mode_i        ( test_mode_i                                 ),
+    .clear_i            ( clear_i                                     ),
+    .tcdm               ( tcdm_fifo_${stream_out[j]}_${k}             ), 
+    .stream             ( stream_fifo_${stream_out[j]}_${k}.sink      ),
+    .ctrl_i             ( ctrl_i.${stream_out[j]}_${k}_sink_ctrl      ),
+    .flags_o            ( flags_o.${stream_out[j]}_${k}_sink_flags    )
+  );
+      % endfor
+    % else:
+  hwpe_stream_sink #(
+    .DATA_WIDTH ( 32 ),
+        % if addr_gen_out_isprogr[j]:
+    .IS_ADDRESSGEN_PROGR  ( 1  )
+        % else:
+    .IS_ADDRESSGEN_PROGR  ( 0  )
+        % endif
+    // .NB_TCDM_PORTS (    )
+  ) i_${ stream_out[j] }_sink (
+    .clk_i              ( clk_i                                       ),
+    .rst_ni             ( rst_ni                                      ),
+    .test_mode_i        ( test_mode_i                                 ),
+    .clear_i            ( clear_i                                     ),
+    .tcdm               ( tcdm_fifo_${stream_out[j]}                  ), 
+    .stream             ( stream_fifo_${stream_out[j]}.sink           ),
+    .ctrl_i             ( ctrl_i.${ stream_out[j] }_sink_ctrl         ),
+    .flags_o            ( flags_o.${ stream_out[j] }_sink_flags       )
+  );
+    % endif
+  % endfor 
+
+</%def>\

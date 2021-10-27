@@ -1,0 +1,29 @@
+<%
+##############################################
+## Library of components - Custom registers ##
+##############################################
+%>
+
+<%
+###########################################
+## Custom registers - Offset declaration ##
+###########################################
+%>
+
+<%def name="custom_regs(addr_current)">\
+  
+  % if custom_reg_num>0:
+
+  // Custom registers
+
+    % for i in range (custom_reg_num):
+        <% NAME=custom_reg_name[i].upper() %>
+  parameter int unsigned ${target.upper()}_REG_${NAME}             = ${addr_current};
+        <%  
+          addr_current += 1
+        %>
+    % endfor 
+    
+  % endif
+
+</%def>\

@@ -1,0 +1,374 @@
+
+/*
+* HWPE: Francesco Conti <fconti@iis.ee.ethz.ch>
+*
+* Copyright (C) 2018 ETH Zurich, University of Bologna
+* Copyright and related rights are licensed under the Solderpad Hardware
+* License, Version 0.51 (the "License"); you may not use this file except in
+* compliance with the License.  You may obtain a copy of the License at
+* http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+* or agreed to in writing, software, hardware and materials distributed under
+* this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+* CONDITIONS OF ANY KIND, either express or implied. See the License for the
+* specific language governing permissions and limitations under the License.
+*
+* Authors:     Francesco Conti <fconti@iis.ee.ethz.ch>
+* Contribute:  Gianluca Bellocchi <gianluca.bellocchi@unimore.it>
+*
+* Module: CONV_engine.sv
+*
+*/
+import CONV_package::*;
+module CONV_engine (
+ // Global signals
+ input  logic          clk_i,
+ input  logic          rst_ni,
+ input  logic          test_mode_i,
+ // Sink ports
+ hwpe_stream_intf_stream.sink    a_i,
+ hwpe_stream_intf_stream.sink    b_i,
+ // Source ports
+ hwpe_stream_intf_stream.source  c_o,
+ // Control channel
+ input  ctrl_engine_t            ctrl_i,
+ output flags_engine_t           flags_o
+);
+ // CONV control
+ logic clear;
+ logic done, idle, ready;
+ assign clear = ctrl_i.clear;
+ assign flags_o.done = done;
+ assign flags_o.idle = idle;
+ always_ff @(posedge clk_i or negedge rst_ni)
+ begin: fsm_ready
+   if(~rst_ni)
+     flags_o.ready = 1'b0;
+   else if(~(ready | idle))
+     flags_o.ready = 1'b0;
+   else
+     flags_o.ready = 1'b1;
+ end
+ // IN/OUT synchronization
+ logic unsigned [$clog2(CONV_CNT_LEN):0] cnt_in;
+ logic unsigned [$clog2(CONV_CNT_LEN):0] cnt_out;
+
+ always_ff @(posedge clk_i or negedge rst_ni)
+ begin: engine_cnt_in
+   if((~rst_ni) | clear)
+     cnt_in = 32'b0;
+   else if((a_i.valid)&(a_i.ready))
+     cnt_in = cnt_in + 1;
+   else
+     cnt_in = cnt_in;
+ end
+
+ always_ff @(posedge clk_i or negedge rst_ni or posedge done)
+ begin: engine_cnt_out
+   if((~rst_ni) | clear)
+     cnt_out = 32'b0;
+   else if((done)&(cnt_in>cnt_out))
+     cnt_out = cnt_out + 1;
+   else
+     cnt_out = cnt_out;
+ end
+ assign flags_o.cnt = cnt_out;
+
+
+ // Get present and past x1 data
+ logic [31:0] x1_present_data;
+ logic [31:0] x1_present_data_true;
+ logic [31:0] x1_past_data;
+ logic start_x1;
+
+ // always_ff @(posedge clk_i or negedge rst_ni)// or posedge a_i.valid)
+ // begin: x1_present
+ //   if((~rst_ni) | clear)
+ //     x1_present_data = 32'b0;
+ //   else if(a_i.valid & a_i.ready)
+ //     x1_present_data = a_i.data;
+ //   else
+ //     x1_present_data = x1_present_data;
+ // end
+
+ always_comb
+ begin: x1_present
+   x1_present_data = a_i.data;
+ end
+
+ always_ff @(posedge clk_i or negedge rst_ni)// or posedge x1_present_data)
+ begin: x1_past
+   if((~rst_ni) | clear)begin
+     x1_present_data_true = 32'b0;
+     x1_past_data = 32'b0;
+      start_x1 = '0;
+   end
+   else if((cnt_in > 0) & (a_i.valid) & (a_i.ready)) begin
+     x1_present_data_true = x1_present_data;
+     x1_past_data = x1_present_data;
+     start_x1 = '1;
+   end
+ end
+
+ // Get present and past x2 data
+ logic [31:0] x2_present_data;
+ logic [31:0] x2_present_data_true;
+ logic [31:0] x2_past_data;
+ logic start_x2;
+
+ // always_ff @(posedge clk_i or negedge rst_ni)// or posedge b_i.valid)
+ // begin: x2_present
+ //   if((~rst_ni) | clear)
+ //     x2_present_data = 32'b0;
+ //   else if(b_i.valid & b_i.ready)
+ //     x2_present_data = b_i.data;
+ //   else
+ //     x2_present_data = x2_present_data;
+ // end
+
+ always_comb
+ begin: x2_present
+   x2_present_data = b_i.data;
+ end
+
+ always_ff @(posedge clk_i or negedge rst_ni)// or posedge x2_present_data)
+ begin: x2_past
+   if((~rst_ni) | clear) begin
+     x2_present_data_true = 32'b0;
+     x2_past_data = 32'b0;
+     start_x2 = '0;
+   end
+   else if((cnt_in > 0) & (b_i.valid) & (b_i.ready)) begin
+     x2_present_data_true = x2_present_data;
+     x2_past_data = x2_present_data;
+     start_x2 = '1;
+   end
+ end
+
+ // True start
+ logic start;
+ logic true_start;
+
+ // always_ff @(posedge clk_i or negedge rst_ni)
+ // begin: start
+ //   if((~rst_ni) | clear | true_start) begin
+ //     start = '0;
+ //   end
+ //   else if(ctrl_i.start)
+ //     start = '1;
+ //   else
+ //     start = start;
+ // end
+
+ // assign true_start = (cnt_in > 0) ? (a_i.valid & a_i.ready & b_i.valid & b_i.ready & ctrl_i.start) : '0;
+ assign true_start = start_x1 & start_x2;
+
+ // Engine
+ generate
+ begin: CONV_gen
+   CONV i_CONV (
+         // Global signals
+         .ap_clk             ( clk_i            ),
+         .ap_rst_n           ( rst_ni           ),
+         // Input data (to-hwpe)
+         .x1_V_TDATA  ( x1_present_data_true  ), .x1_V_TVALID ( a_i.valid ), .x1_V_TREADY ( a_i.ready ),
+         .x2_V_TDATA  ( x2_present_data_true  ), .x2_V_TVALID ( b_i.valid ), .x2_V_TREADY ( b_i.ready ),
+
+         // .x1_p_V_TDATA  ( x1_past_data_true  ), .x1_p_V_TVALID ( overall_valid_synchro ), .x1_p_V_TREADY ( x1_past_ready ),
+         // .x2_p_V_TDATA  ( x2_past_data_true  ), .x2_p_V_TVALID ( overall_valid_synchro ), .x2_p_V_TREADY ( x2_past_ready ),
+         
+         // Output data (from-hwpe)
+         .y_V_TDATA  ( c_o.data  ), .y_V_TVALID ( c_o.valid ), .y_V_TREADY ( c_o.ready ),
+         // Algorithm parameters
+         .k11_V        (  ctrl_i.k11_V      ),
+         .k21_V        (  ctrl_i.k21_V      ),
+         .k12_V        (  ctrl_i.k12_V      ),
+         .k22_V        (  ctrl_i.k22_V      ),
+         .x1_p_V        (  x1_past_data      ),
+         .x2_p_V        (  x2_past_data      ),
+         // Control signals
+         .ap_start           ( true_start    ),
+         .ap_done            ( done             ),
+         .ap_idle            ( idle             ),
+         .ap_ready           ( ready            )
+   );
+ end
+ endgenerate
+
+ /* X1 */ 
+
+ // Get present and past x1 data
+ // logic [31:0] x1_present_data;
+ // logic [31:0] x1_present_data_true;
+ // logic x1_present_valid;
+ // logic x1_present_ready;
+ // logic [31:0] x1_past_data_true;
+ // logic x1_past_valid;
+ // logic x1_past_ready;
+ // logic x1_valid_synchro;
+
+ // always_comb
+ // begin
+ //   assign x1_past_true = ( cnt_in > 0 ) ? ( x1_past_data ) : ( ctrl_i.x1_p_V ) ;
+ // end
+
+ // // Present
+ // always_comb
+ // begin : x1_present
+ //   x1_present_data = a_i.data;
+ // end
+
+ // // TRUE present
+ // always_ff @(posedge clk_i or negedge rst_ni)
+ // begin : x1_present_true
+ //   if(~rst_ni) begin
+ //     x1_present_data_true <= '0;
+ //   end
+ //   else if (clear) begin
+ //     x1_present_data_true <= '0;
+ //   end
+ //   else if (ctrl_i.enable) begin
+ //     if (a_i.valid) begin
+ //       x1_present_data_true <= x1_present_data;
+ //     end
+ //   end
+ // end
+
+ // // TRUE present valid
+ // always_ff @(posedge clk_i or negedge rst_ni)
+ // begin : x1_present_true_valid
+ //   if(~rst_ni) begin
+ //     x1_present_valid <= '0;
+ //   end
+ //   else if (ctrl_i.clear) begin
+ //     x1_present_valid <= '0;
+ //   end
+ //   else if (ctrl_i.enable) begin
+ //     if (a_i.valid & x1_present_ready) begin
+ //       x1_present_valid <= '1;
+ //     end
+ //   end
+ // end
+
+ // // True past
+ // always_ff @(posedge clk_i or negedge rst_ni)
+ // begin : x1_past
+ //   if(~rst_ni) begin
+ //     x1_past_data_true <= '0;
+ //     // x1_past_valid <= '0;
+ //   end
+ //   else if (clear) begin
+ //     x1_past_data_true <= '0;
+ //     // x1_past_valid <= '0;
+ //   end
+ //   else if (ctrl_i.enable) begin
+ //     if (a_i.valid) begin
+ //       x1_past_data_true <= x1_present_data_true;
+ //       // x1_past_valid <= '1;
+ //     end
+ //   end
+ // end
+
+ // // X1 past/present synchro valid
+ // // always_comb
+ // // begin : x1_synchro
+ // //   x1_valid_synchro = x1_present_valid & x1_past_valid;
+ // // end
+
+ // assign a_i.ready = (x1_present_ready & x1_present_valid);// & x1_past_valid);
+
+
+ 
+
+ /* X2 */
+
+ // // Get present and past x2 data
+ // logic [31:0] x2_present_data;
+ // logic [31:0] x2_present_data_true;
+ // logic x2_present_valid;
+ // logic x2_present_ready;
+ // logic [31:0] x2_past_data_true;
+ // logic x2_past_valid;
+ // logic x2_past_ready;
+ // logic x2_valid_synchro;
+
+ // // Present
+ // always_comb
+ // begin : x2_present
+ //   x2_present_data = b_i.data;
+ // end
+
+ // // TRUE present
+ // always_ff @(posedge clk_i or negedge rst_ni)
+ // begin : x2_present_true
+ //   if(~rst_ni) begin
+ //     x2_present_data_true <= '0;
+ //   end
+ //   else if (clear) begin
+ //     x2_present_data_true <= '0;
+ //   end
+ //   else if (ctrl_i.enable) begin
+ //     if (b_i.valid) begin
+ //       x2_present_data_true <= x2_present_data;
+ //     end
+ //   end
+ // end
+
+ // // TRUE present valid
+ // always_ff @(posedge clk_i or negedge rst_ni)
+ // begin : x2_present_true_valid
+ //   if(~rst_ni) begin
+ //     x2_present_valid <= '0;
+ //   end
+ //   else if (ctrl_i.clear) begin
+ //     x2_present_valid <= '0;
+ //   end
+ //   else if (ctrl_i.enable) begin
+ //     if (b_i.valid & x2_present_ready) begin
+ //       x2_present_valid <= '1;
+ //     end
+ //   end
+ // end
+
+ // // True past
+ // always_ff @(posedge clk_i or negedge rst_ni)
+ // begin : x2_past
+ //   if(~rst_ni) begin
+ //     x2_past_data_true <= '0;
+ //     // x2_past_valid <= '0;
+ //   end
+ //   else if (clear) begin
+ //     x2_past_data_true <= '0;
+ //     // x2_past_valid <= '0;
+ //   end
+ //   else if (ctrl_i.enable) begin
+ //     if (b_i.valid) begin
+ //       x2_past_data_true <= x2_present_data_true;
+ //       // x2_past_valid <= '1;
+ //     end
+ //   end
+ // end
+
+ // // x2 past/present synchro valid
+ // // always_comb
+ // // begin : x2_synchro
+ // //   x2_valid_synchro = x2_present_valid & x2_past_valid;
+ // // end
+
+ // assign b_i.ready = (x2_present_ready & x2_present_valid);// & x2_past_valid) ;
+
+ // // // TOTAL synchro valid
+ // // logic overall_valid_synchro;
+ // // always_comb
+ // // begin : overall_valid
+ // //   overall_valid_synchro = x1_valid_synchro & x2_valid_synchro;
+ // // end
+
+
+ // At the moment output strobe is always '1
+ // All bytes of output streams are written
+ // to TCDM
+ always_comb
+ begin
+   c_o.strb = '1;
+ end
+endmodule

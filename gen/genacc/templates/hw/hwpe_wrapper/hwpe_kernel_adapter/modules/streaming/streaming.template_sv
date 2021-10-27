@@ -1,0 +1,37 @@
+<%
+#######################################
+## Library of components - Streaming ##
+#######################################
+%>
+
+<%
+##################################
+## Streaming - Kernel interface ##
+##################################
+%>
+
+<%def name="streaming_kernel_intf()">\
+
+  // Sink ports
+  % for i in range (n_sink):
+    % if (is_parallel_in[i]):
+      % for k in range (in_parallelism_factor[i]):
+  hwpe_stream_intf_stream.sink ${stream_in[i]}_${k}_i,
+      % endfor
+    % else:
+  hwpe_stream_intf_stream.sink ${stream_in[i]}_i,
+    % endif
+  % endfor 
+
+  // Source ports
+  % for j in range (n_source):
+    % if (is_parallel_out[j]):
+      % for k in range (out_parallelism_factor[j]):
+  hwpe_stream_intf_stream.source ${stream_out[j]}_${k}_o,
+      % endfor
+    % else:
+  hwpe_stream_intf_stream.source ${stream_out[j]}_o,
+    % endif
+  % endfor 
+
+</%def>\
