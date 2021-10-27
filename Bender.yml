@@ -1,6 +1,6 @@
 package:
   name: genov
-  authors: [ "Gianluca Bellocchi <gianluca.bellocchi@unimore.it>" ]
+  authors: [ "Andreas Kurth <akurth@iis.ee.ethz.ch>" , "Gianluca Bellocchi <gianluca.bellocchi@unimore.it>" ]
 
 dependencies:
   axi2apb: { git: "https://github.com/pulp-platform/axi2apb.git", rev: atop }
