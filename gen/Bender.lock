@@ -1,8 +1,0 @@
----
-packages:
-  genacc:
-    revision: e1c1245ff65056769bc13a8ae1f7b919d8340459
-    version: ~
-    source:
-      Git: "git@git.hipert.unimore.it:comp4drones/HERO/genacc.git"
-    dependencies: []

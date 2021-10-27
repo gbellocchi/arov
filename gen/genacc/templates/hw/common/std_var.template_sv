@@ -1,7 +1,0 @@
-<%  
-    try:
-        TARGET = target.upper()
-        n_tcdm_ports = n_sink + n_source
-    except:
-        pass
-%>

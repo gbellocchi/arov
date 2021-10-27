@@ -1,9 +1,0 @@
-Past the content of hwpe_engine.txt inside of the CONV_engine.sv that will be created.
-This a hardware pipeline to implement past / present input values that cannot be
-realized using the actual version of the tool.
-
-Furthermore in CONV_ctrl.sv, set this:
-fsm_ctrl.k22_V    = 32'b1;
-It has some problems in the other way for some reasons...
-
-In the firmware, try to use two different stripes of 5 data each.

@@ -1,9 +1,0 @@
-// Author: Gianluca Bellocchi 
-#define WIDTH ${width}
-#define HEIGHT ${height}
-#define NUM_UNFILTERED WIDTH*HEIGHT
-#define COEFFS_DIM ${coeffs_dim}
-
-
-
-

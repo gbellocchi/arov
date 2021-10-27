@@ -1,8 +1,0 @@
-/* 
- * Authors:  Gianluca Bellocchi <gianluca.bellocchi@unimore.it>
- */
-
-// Input unfiltered values
-__attribute__((aligned(${data_dim}))) ${data_type} arti_stim[] = {
-${stim}
-};
