@@ -39,3 +39,11 @@ sources:
   - src/pulp.sv
   # Level 3
   - src/pulp_ooc.sv
+
+  - target: test
+    files:
+      # Level 0
+      - src/apb/apb_stdout.sv
+      # Level 1
+      - test/pulp_tb.sv
+

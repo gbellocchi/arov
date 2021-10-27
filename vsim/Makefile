@@ -7,9 +7,9 @@ TEST_FOLDER 	:= $(realpath $(ROOT)/../test )
 SLM_FILES 		:= $(TEST_FOLDER)/slm_files
 
 # test app
-APP_DIR_OPEN_MP := tests-pulp/api
 APP_DIR_SINGLE_ACC := $(realpath ../deps/hwpe-generated-ex/sw )
 APP_NAME := sw
+APP_PATH := ${APP_DIR_SINGLE_ACC}
 
 # modelsim
 VSIM_GUI := 1
@@ -17,14 +17,15 @@ VSIM_GUI := 1
 all: clean compile gen_slm sim
 
 sim: 
-	@echo 'Start simulation.'
+	@echo -e '>> Start simulation.'
 	@./start_sim.sh ${VSIM_GUI}
-	
+
 gen_slm:
-	@$(TEST_FOLDER)/gen_slm_files.sh $(APP_DIR_SINGLE_ACC)
+	@echo -e '>> Searching for software test in $(APP_PATH).'
+	@$(TEST_FOLDER)/gen_slm_files.sh $(APP_PATH)
 
 compile:
-	@echo 'Compiling RTL.'
+	@echo -e '>> Compiling RTL.'
 	@./compile.sh
 
 clean_lib: clean

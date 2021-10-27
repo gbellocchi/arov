@@ -131,10 +131,6 @@ vsim/compile.tcl: bender
 		-t rtl -t test \
 		| grep -v "set ROOT" >> $@
 
-init_gen: clean_bender bender
-	./bender clone genacc \
-		-p ./
-
 bender: Makefile
 	curl --proto '=https' --tlsv1.2 -sSf https://fabianschuiki.github.io/bender/init | sh -s 0.21.0
 	touch bender
