@@ -1,2 +1,0 @@
-`define L2_ATOMIC_PRESENT 
-`define L1_ATOMIC_PRESENT 
