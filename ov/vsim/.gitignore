@@ -1,0 +1,7 @@
+!/.gitignore
+*.log
+work/
+modelsim*
+vsim.wlf
+transcript
+compile.tcl

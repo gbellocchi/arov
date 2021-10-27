@@ -1,0 +1,9 @@
+package:
+  name: genacc
+  authors: [ "Gianluca Bellocchi <gianluca.bellocchi@unimore.it>" ]
+
+dependencies:
+  genacc: { git: "git@git.hipert.unimore.it:comp4drones/HERO/genacc.git", rev: beta-uniss }
+
+# workspace:
+#   checkout_dir: "./"
