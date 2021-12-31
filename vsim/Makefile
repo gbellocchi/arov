@@ -7,7 +7,7 @@ TEST_FOLDER 	:= $(realpath $(ROOT)/../test )
 SLM_FILES 		:= $(TEST_FOLDER)/slm_files
 
 # test app
-APP_DIR_SINGLE_ACC := $(realpath ../deps/hwpe-generated-ex/sw )
+APP_DIR_SINGLE_ACC := $(realpath ../deps/hwpe-gen-app/sw )
 APP_NAME := sw
 APP_PATH := ${APP_DIR_SINGLE_ACC}
 
