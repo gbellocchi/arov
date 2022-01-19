@@ -1,3 +1,17 @@
+# =====================================================================
+# Title:        start_sim.sh
+#
+# $Date:        18.1.2022
+# =====================================================================
+#
+# Copyright (C) 2021 University of Modena and Reggio Emilia.
+#
+# Authors: 
+#   - Andreas Kurth, ETH Zurich
+#   - Gianluca Bellocchi, University of Modena and Reggio Emilia.
+#
+# =====================================================================
+
 #!/usr/bin/env bash
 
 set -e
@@ -9,6 +23,7 @@ error_exit()
 }
 
 readonly vsim_gui="$1"
+readonly target_ov="$2"
 
 # UNIMORE setup
 if [ $UNIMORE -eq 1 ]; then

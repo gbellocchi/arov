@@ -1,10 +1,40 @@
-vsim -voptargs="+acc" -t 1ps -warning 3009 pulp_tb
+# =====================================================================
+# Title:        run.tcl
+#
+# $Date:        18.1.2022
+# =====================================================================
+#
+# Copyright (C) 2021 University of Modena and Reggio Emilia.
+#
+# Authors: 
+#   - Andreas Kurth, ETH Zurich
+#   - Gianluca Bellocchi, University of Modena and Reggio Emilia.
+#
+# =====================================================================
+
+# source files
+set src_path $env(SRC_PATH)
+
+# overlay configuration
+set target_ov $env(TARGET_OV)
+
+echo ""
+echo "\[tcl\] >> Starting simulation of overlay configuration <$target_ov>"
+echo ""
+
+vsim -voptargs="+acc" -t 1ps -warning 3009 overlay_tb
 set StdArithNoWarnings 1
 set NumericStdNoWarnings 1
 set BreakOnAssertion 2;# break also on assertion errors
 
+# read wave files
 if { ! [batch_mode] } {
-    source ../test/pulp_tb.wave.do
+    set directory "$src_path/$target_ov/test/waves"
+    set files [glob [file join $directory *.wave.do]]
+    echo "There are [llength $files] wave files in $directory:"
+    foreach f $files {
+        source $f
+    }
 }
 
 onfinish stop
@@ -16,7 +46,7 @@ quietly set quitCode [expr [string match "*unknown" [runStatus -full]] ? 1 : 0]
 
 # If the simulation terminated regularly, ..
 if {! $quitCode } {
-    quietly set resRegPath { /pulp_tb/i_peripherals/i_soc_ctrl_regs/i_core_res/reg_q }
+    quietly set resRegPath { /overlay_tb/i_peripherals/i_soc_ctrl_regs/i_core_res/reg_q }
     # and the master core EOC'ed properly ..
     if { [examine -radix unsigned $resRegPath[0][31]] } {
         # .. return the value of the `main` function

@@ -1,38 +1,48 @@
-# Author: Gianluca Bellocchi
+# =====================================================================
+# Title:        vsim.mk
+#
+# $Date:        18.1.2022
+# =====================================================================
+#
+# Copyright (C) 2021 University of Modena and Reggio Emilia.
+#
+# Author: Gianluca Bellocchi, University of Modena and Reggio Emilia.
+#
+# =====================================================================
 
-ROOT := $(patsubst %/,%, $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+ROOT 					:= $(patsubst %/,%, $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
-# test
-TEST_FOLDER 	:= $(realpath $(ROOT)/../test )
-SLM_FILES 		:= $(TEST_FOLDER)/slm_files
+TEST_PATH 				:= $(realpath ${ROOT}/../test )
+SLM_FILES 				:= $(TEST_PATH)/slm_files
 
-# test app
-APP_DIR_SINGLE_ACC := $(realpath ../deps/hwpe-gen-app/sw )
-APP_NAME := sw
-APP_PATH := ${APP_DIR_SINGLE_ACC}
+# =====================================================================
+# Description:  Application test.
+# =====================================================================
 
-# modelsim
+TEST_APP := $(realpath ${SRC_PATH}/${TARGET_OV}/test/sw )
+
+# =====================================================================
+# Description:  QuestaSim GUI.
+# =====================================================================
+
 VSIM_GUI := 1
 
-all: clean compile gen_slm sim
+all: compile start_sim
 
-sim: 
+start_sim: 
 	@echo -e '>> Start simulation.'
-	@./start_sim.sh ${VSIM_GUI}
-
-gen_slm:
-	@echo -e '>> Searching for software test in $(APP_PATH).'
-	@$(TEST_FOLDER)/gen_slm_files.sh $(APP_PATH)
+	@./$@.sh ${VSIM_GUI} ${TARGET_OV}
+	
+gen_slm_files:
+	@echo -e '>> Searching for software test in $(TEST_APP).'
+	@$(TEST_PATH)/$@.sh $(TEST_APP)
 
 compile:
 	@echo -e '>> Compiling RTL.'
-	@./compile.sh
+	@./$@.sh
 
-clean_lib: clean
-	@rm -rf work
-
-.PHONY: clean
 clean:
+	@rm -rf work
 	@rm -f $(SLM_FILES)/*
 	@rm -f compile.tcl vsim.wlf modelsim.ini transcript vivado* *.log *.bak
 	@rm -rf work modelsim_libs
