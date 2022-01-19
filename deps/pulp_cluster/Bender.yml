@@ -1,5 +1,5 @@
 package:
-  name: pulp_cluster
+  name: overlay_cluster
 
 dependencies:
   axi2mem: { git: "https://github.com/pulp-platform/axi2mem.git", rev: atomics }
@@ -16,9 +16,11 @@ dependencies:
   per2axi: { git: "https://github.com/pulp-platform/per2axi.git", rev: atomics }
   riscv: { git: "https://github.com/pulp-platform/riscv.git", rev: atomics }
   timer_unit: { git: "https://github.com/pulp-platform/timer_unit.git", version: 1.0.0 }
+  overlay_hwacc_region: { git: "https://git.hipert.unimore.it/gbellocchi/overlay_hwacc_region", version: 1.0.0 }
 
 sources:
   # Level 0
+  - packages/hwacc_package.sv
   - packages/apu_package.sv
   - packages/pulp_cluster_package.sv
   - rtl/axi2per_wrap.sv
@@ -28,6 +30,7 @@ sources:
   - rtl/cluster_event_map.sv
   - rtl/cluster_interconnect_wrap.sv
   - rtl/cluster_timer_wrap.sv
+  - rtl/hwacc_region_wrap.sv
   - rtl/cpu_marx_if.sv
   - rtl/dmac_wrap.sv
   - rtl/per2axi_wrap.sv
@@ -35,7 +38,6 @@ sources:
   - rtl/periph_FIFO.sv
   - rtl/periph_demux.sv
   - rtl/tryx_ctrl.sv
-  - rtl/xne_wrap.sv
   - rtl/cluster_dma_transfer_id_gen.sv
   - rtl/cluster_dma_frontend_regs.sv
   # Level 1
@@ -45,4 +47,4 @@ sources:
   # Level 2
   - rtl/core_region.sv
   # Level 3
-  - rtl/pulp_cluster.sv
+  - rtl/overlay_cluster.sv

@@ -19,11 +19,11 @@
 module cluster_peripherals import pulp_cluster_package::*;
 #(
   parameter NB_CORES       = 4,
+  parameter NB_HWACC       = 1,
   parameter NB_MPERIPHS    = 1,
   parameter NB_CACHE_BANKS = 4,
   parameter NB_SPERIPHS    = 8,
   parameter NB_TCDM_BANKS  = 8,
-  parameter NB_HWPE_PORTS  = 1,
   parameter ROM_BOOT_ADDR  = 32'h1A000000,
   parameter BOOT_ADDR      = 32'h1C000000,
   parameter EVNT_WIDTH     = 8,
@@ -74,10 +74,11 @@ module cluster_peripherals import pulp_cluster_package::*;
   // SRAM SPEED REGULATION --> TCDM
   output logic [1:0]                  TCDM_arb_policy_o,
 
-  XBAR_PERIPH_BUS.Master              hwce_cfg_master,
-  input logic [NB_CORES-1:0][3:0]     hwacc_events_i,
-  output logic                        hwpe_sel_o,
-  output logic                        hwpe_en_o,
+  // Hardware accelerators
+  XBAR_PERIPH_BUS.Master                            hwce_cfg_master[NB_HWACC-1:0],
+  input logic [NB_HWACC-1:0][NB_CORES-1:0][3:0]     hwacc_events_i,
+  output logic [NB_HWACC-1:0]                       hwpe_sel_o,
+  output logic [NB_HWACC-1:0]                       hwpe_en_o,
 
   // Control ports
   MP_PF_ICACHE_CTRL_UNIT_BUS.Master      IC_ctrl_unit_bus
@@ -89,7 +90,7 @@ module cluster_peripherals import pulp_cluster_package::*;
   logic                      s_timer_in_hi_event;
   
   logic [NB_CORES-1:0][31:0] s_cluster_events;
-  logic [NB_CORES-1:0][3:0]  s_acc_events;
+  logic [NB_HWACC-1:0][NB_CORES-1:0][3:0]  s_acc_events;
   logic [NB_CORES-1:0][1:0]  s_timer_events;
   logic [NB_CORES-1:0][1:0]  s_dma_events;
   
@@ -113,9 +114,11 @@ module cluster_peripherals import pulp_cluster_package::*;
   generate
     for (genvar I=0; I<NB_CORES; I++) begin
       assign s_cluster_events[I] = {30'd0,pf_event_o,dma_pe_irq_i};
-      assign s_acc_events[I]     = hwacc_events_i[I];
       assign s_timer_events[I]   = {s_timer_out_hi_event,s_timer_out_lo_event};
       assign s_dma_events[I]     = {dma_irq_i[I],dma_events_i[I]};
+      for (genvar J=0; J<NB_HWACC; J++) begin
+        assign s_acc_events[J][I]     = hwacc_events_i[J][I];
+      end
     end
   endgenerate
   
@@ -254,19 +257,63 @@ module cluster_peripherals import pulp_cluster_package::*;
   assign dma_cfg_master.wdata = speriph_slave[SPER_DMA_ID].wdata;
   assign dma_cfg_master.be    = speriph_slave[SPER_DMA_ID].be;
   assign dma_cfg_master.id    = speriph_slave[SPER_DMA_ID].id;
+
+  // Multi-accelerator binding -> NB!! i=1 -> i=0 sul loop quando gli ID di hwpe saranno parametrizzati bene nel package (sono da mettere dopo ext)
+  // for(genvar i=0; i<NB_HWACC; i++) begin : hwacc_region_gen
+  //   assign speriph_slave[SPER_HWPE_ID+i].gnt     = hwce_cfg_master[i].gnt;
+  //   assign speriph_slave[SPER_HWPE_ID+i].r_rdata = hwce_cfg_master[i].r_rdata;
+  //   assign speriph_slave[SPER_HWPE_ID+i].r_opc   = hwce_cfg_master[i].r_opc;
+  //   assign speriph_slave[SPER_HWPE_ID+i].r_id    = hwce_cfg_master[i].r_id;
+  //   assign speriph_slave[SPER_HWPE_ID+i].r_valid = hwce_cfg_master[i].r_valid;
     
-  // accelerator binding
-  assign speriph_slave[SPER_HWPE_ID].gnt     = hwce_cfg_master.gnt;
-  assign speriph_slave[SPER_HWPE_ID].r_rdata = hwce_cfg_master.r_rdata;
-  assign speriph_slave[SPER_HWPE_ID].r_opc   = hwce_cfg_master.r_opc;
-  assign speriph_slave[SPER_HWPE_ID].r_id    = hwce_cfg_master.r_id;
-  assign speriph_slave[SPER_HWPE_ID].r_valid = hwce_cfg_master.r_valid;
+  //   assign hwce_cfg_master[i].req   = speriph_slave[SPER_HWPE_ID+i].req;
+  //   assign hwce_cfg_master[i].add   = speriph_slave[SPER_HWPE_ID+i].add;
+  //   assign hwce_cfg_master[i].wen   = speriph_slave[SPER_HWPE_ID+i].wen;
+  //   assign hwce_cfg_master[i].wdata = speriph_slave[SPER_HWPE_ID+i].wdata;
+  //   assign hwce_cfg_master[i].be    = speriph_slave[SPER_HWPE_ID+i].be;
+  //   assign hwce_cfg_master[i].id    = speriph_slave[SPER_HWPE_ID+i].id;
+  // end
+
+  // HW_ACC_0
+  assign speriph_slave[SPER_HWPE_0_ID].gnt     = hwce_cfg_master[0].gnt;
+  assign speriph_slave[SPER_HWPE_0_ID].r_rdata = hwce_cfg_master[0].r_rdata;
+  assign speriph_slave[SPER_HWPE_0_ID].r_opc   = hwce_cfg_master[0].r_opc;
+  assign speriph_slave[SPER_HWPE_0_ID].r_id    = hwce_cfg_master[0].r_id;
+  assign speriph_slave[SPER_HWPE_0_ID].r_valid = hwce_cfg_master[0].r_valid;
   
-  assign hwce_cfg_master.req   = speriph_slave[SPER_HWPE_ID].req;
-  assign hwce_cfg_master.add   = speriph_slave[SPER_HWPE_ID].add;
-  assign hwce_cfg_master.wen   = speriph_slave[SPER_HWPE_ID].wen;
-  assign hwce_cfg_master.wdata = speriph_slave[SPER_HWPE_ID].wdata;
-  assign hwce_cfg_master.be    = speriph_slave[SPER_HWPE_ID].be;
-  assign hwce_cfg_master.id    = speriph_slave[SPER_HWPE_ID].id;
+  assign hwce_cfg_master[0].req   = speriph_slave[SPER_HWPE_0_ID].req;
+  assign hwce_cfg_master[0].add   = speriph_slave[SPER_HWPE_0_ID].add;
+  assign hwce_cfg_master[0].wen   = speriph_slave[SPER_HWPE_0_ID].wen;
+  assign hwce_cfg_master[0].wdata = speriph_slave[SPER_HWPE_0_ID].wdata;
+  assign hwce_cfg_master[0].be    = speriph_slave[SPER_HWPE_0_ID].be;
+  assign hwce_cfg_master[0].id    = speriph_slave[SPER_HWPE_0_ID].id;
+
+  // HW_ACC_1
+  assign speriph_slave[SPER_HWPE_1_ID].gnt     = hwce_cfg_master[1].gnt;
+  assign speriph_slave[SPER_HWPE_1_ID].r_rdata = hwce_cfg_master[1].r_rdata;
+  assign speriph_slave[SPER_HWPE_1_ID].r_opc   = hwce_cfg_master[1].r_opc;
+  assign speriph_slave[SPER_HWPE_1_ID].r_id    = hwce_cfg_master[1].r_id;
+  assign speriph_slave[SPER_HWPE_1_ID].r_valid = hwce_cfg_master[1].r_valid;
+  
+  assign hwce_cfg_master[1].req   = speriph_slave[SPER_HWPE_1_ID].req;
+  assign hwce_cfg_master[1].add   = speriph_slave[SPER_HWPE_1_ID].add;
+  assign hwce_cfg_master[1].wen   = speriph_slave[SPER_HWPE_1_ID].wen;
+  assign hwce_cfg_master[1].wdata = speriph_slave[SPER_HWPE_1_ID].wdata;
+  assign hwce_cfg_master[1].be    = speriph_slave[SPER_HWPE_1_ID].be;
+  assign hwce_cfg_master[1].id    = speriph_slave[SPER_HWPE_1_ID].id;
+
+  // HW_ACC_2
+  assign speriph_slave[SPER_HWPE_2_ID].gnt     = hwce_cfg_master[2].gnt;
+  assign speriph_slave[SPER_HWPE_2_ID].r_rdata = hwce_cfg_master[2].r_rdata;
+  assign speriph_slave[SPER_HWPE_2_ID].r_opc   = hwce_cfg_master[2].r_opc;
+  assign speriph_slave[SPER_HWPE_2_ID].r_id    = hwce_cfg_master[2].r_id;
+  assign speriph_slave[SPER_HWPE_2_ID].r_valid = hwce_cfg_master[2].r_valid;
+  
+  assign hwce_cfg_master[2].req   = speriph_slave[SPER_HWPE_2_ID].req;
+  assign hwce_cfg_master[2].add   = speriph_slave[SPER_HWPE_2_ID].add;
+  assign hwce_cfg_master[2].wen   = speriph_slave[SPER_HWPE_2_ID].wen;
+  assign hwce_cfg_master[2].wdata = speriph_slave[SPER_HWPE_2_ID].wdata;
+  assign hwce_cfg_master[2].be    = speriph_slave[SPER_HWPE_2_ID].be;
+  assign hwce_cfg_master[2].id    = speriph_slave[SPER_HWPE_2_ID].id;
    
 endmodule // cluster_peripherals
