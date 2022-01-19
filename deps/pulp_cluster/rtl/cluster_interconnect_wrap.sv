@@ -16,12 +16,10 @@
  * Francesco Conti <fconti@iis.ee.ethz.ch>
  */
 
-`include "pulp_defines.svh"
-
 module cluster_interconnect_wrap
 #(
   parameter NB_CORES              = 8,
-  parameter NB_HWACC_PORTS_TOTAL  = 4,
+  parameter NB_HWPE_PORTS_TOTAL   = 4,
   parameter NB_DMAS               = 4,
   parameter NB_EXT                = 4,
   parameter NB_MPERIPHS           = 1,
@@ -43,7 +41,7 @@ module cluster_interconnect_wrap
 (
   input logic                          clk_i,
   input logic                          rst_ni,
-  XBAR_TCDM_BUS.Slave                  core_tcdm_slave[NB_CORES+NB_HWACC_PORTS_TOTAL-1:0],
+  XBAR_TCDM_BUS.Slave                  core_tcdm_slave[NB_CORES+NB_HWPE_PORTS_TOTAL-1:0],
   input logic [NB_CORES-1:0][5:0]      core_tcdm_slave_atop,
   XBAR_PERIPH_BUS.Slave                core_periph_slave[NB_CORES-1:0],
   input logic [NB_CORES-1:0][5:0]      core_periph_slave_atop,
@@ -58,7 +56,7 @@ module cluster_interconnect_wrap
   input logic [1:0]                    TCDM_arb_policy_i
 );
 
-  localparam TCDM_ID_WIDTH = NB_CORES+NB_DMAS+NB_EXT+NB_HWACC_PORTS_TOTAL;
+  localparam TCDM_ID_WIDTH = NB_CORES+NB_DMAS+NB_EXT+NB_HWPE_PORTS_TOTAL;
 
   // DMA --> LOGARITHMIC INTERCONNECT BUS SIGNALS
   logic [NB_EXT+NB_DMAS-1:0][DATA_WIDTH-1:0] s_dma_bus_wdata;
@@ -71,14 +69,14 @@ module cluster_interconnect_wrap
   logic [NB_EXT+NB_DMAS-1:0]                 s_dma_bus_r_valid;
 
   // DEMUX --> LOGARITHMIC INTERCONNECT BUS SIGNALS
-  logic [NB_CORES+NB_HWACC_PORTS_TOTAL-1:0][DATA_WIDTH-1:0] s_core_tcdm_bus_wdata;
-  logic [NB_CORES+NB_HWACC_PORTS_TOTAL-1:0][ADDR_WIDTH-1:0] s_core_tcdm_bus_add;
-  logic [NB_CORES+NB_HWACC_PORTS_TOTAL-1:0]                 s_core_tcdm_bus_req;
-  logic [NB_CORES+NB_HWACC_PORTS_TOTAL-1:0]                 s_core_tcdm_bus_wen;
-  logic [NB_CORES+NB_HWACC_PORTS_TOTAL-1:0][BE_WIDTH-1:0]   s_core_tcdm_bus_be;
-  logic [NB_CORES+NB_HWACC_PORTS_TOTAL-1:0]                 s_core_tcdm_bus_gnt;
-  logic [NB_CORES+NB_HWACC_PORTS_TOTAL-1:0][DATA_WIDTH-1:0] s_core_tcdm_bus_r_rdata;
-  logic [NB_CORES+NB_HWACC_PORTS_TOTAL-1:0]                 s_core_tcdm_bus_r_valid;
+  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0][DATA_WIDTH-1:0] s_core_tcdm_bus_wdata;
+  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0][ADDR_WIDTH-1:0] s_core_tcdm_bus_add;
+  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0]                 s_core_tcdm_bus_req;
+  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0]                 s_core_tcdm_bus_wen;
+  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0][BE_WIDTH-1:0]   s_core_tcdm_bus_be;
+  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0]                 s_core_tcdm_bus_gnt;
+  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0][DATA_WIDTH-1:0] s_core_tcdm_bus_r_rdata;
+  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0]                 s_core_tcdm_bus_r_valid;
 
   `ifdef L1_ATOMIC_PRESENT
     // LOGARITHMIC INTERCONNECT --> AMO Shims
@@ -97,7 +95,7 @@ module cluster_interconnect_wrap
   `endif
 
   generate
-    for (genvar i=0; i<NB_CORES+NB_HWACC_PORTS_TOTAL; i++) begin : CORE_TCDM_BIND
+    for (genvar i=0; i<NB_CORES+NB_HWPE_PORTS_TOTAL; i++) begin : CORE_TCDM_BIND
       assign s_core_tcdm_bus_add[i]      = core_tcdm_slave[i].add;
       assign s_core_tcdm_bus_req[i]      = core_tcdm_slave[i].req;
       assign s_core_tcdm_bus_wdata[i]    = core_tcdm_slave[i].wdata;
@@ -138,7 +136,7 @@ module cluster_interconnect_wrap
     end
   endgenerate
 
-  localparam NUM_TCDM_ICONN_IN = NB_CORES + NB_HWACC_PORTS_TOTAL + NB_DMAS + NB_EXT;
+  localparam NUM_TCDM_ICONN_IN = NB_CORES + NB_HWPE_PORTS_TOTAL + NB_DMAS + NB_EXT;
   typedef struct packed {
     logic [DATA_WIDTH-1:0]  data;
     logic [5:0]             atop;
@@ -184,12 +182,12 @@ module cluster_interconnect_wrap
     );
 
     for (genvar i = 0; i < NUM_TCDM_ICONN_IN; i++) begin : gen_iconn_pack_inp_data
-      if (i < NB_CORES + NB_HWACC_PORTS_TOTAL) begin
+      if (i < NB_CORES + NB_HWPE_PORTS_TOTAL) begin
         assign iconn_inp_wdata[i].data = s_core_tcdm_bus_wdata[i];
         assign s_core_tcdm_bus_r_rdata[i] = iconn_inp_rdata[i].data;
       end else begin
-        assign iconn_inp_wdata[i].data = s_dma_bus_wdata[i - (NB_CORES + NB_HWACC_PORTS_TOTAL)];
-        assign s_dma_bus_r_rdata[i - (NB_CORES + NB_HWACC_PORTS_TOTAL)] = iconn_inp_rdata[i].data;
+        assign iconn_inp_wdata[i].data = s_dma_bus_wdata[i - (NB_CORES + NB_HWPE_PORTS_TOTAL)];
+        assign s_dma_bus_r_rdata[i - (NB_CORES + NB_HWPE_PORTS_TOTAL)] = iconn_inp_rdata[i].data;
       end
       if (i < NB_CORES) begin
         assign iconn_inp_wdata[i].atop = core_tcdm_slave_atop[i];
@@ -300,12 +298,12 @@ module cluster_interconnect_wrap
     );
 
     for (genvar i = 0; i < NUM_TCDM_ICONN_IN; i++) begin : gen_iconn_pack_inp_data
-      if (i < NB_CORES + NB_HWACC_PORTS_TOTAL) begin
+      if (i < NB_CORES + NB_HWPE_PORTS_TOTAL) begin
         assign iconn_inp_wdata[i].data = s_core_tcdm_bus_wdata[i];
         assign s_core_tcdm_bus_r_rdata[i] = iconn_inp_rdata[i].data;
       end else begin
-        assign iconn_inp_wdata[i].data = s_dma_bus_wdata[i - (NB_CORES + NB_HWACC_PORTS_TOTAL)];
-        assign s_dma_bus_r_rdata[i - (NB_CORES + NB_HWACC_PORTS_TOTAL)] = iconn_inp_rdata[i].data;
+        assign iconn_inp_wdata[i].data = s_dma_bus_wdata[i - (NB_CORES + NB_HWPE_PORTS_TOTAL)];
+        assign s_dma_bus_r_rdata[i - (NB_CORES + NB_HWPE_PORTS_TOTAL)] = iconn_inp_rdata[i].data;
       end
       if (i < NB_CORES) begin
         assign iconn_inp_wdata[i].atop = core_tcdm_slave_atop[i];
