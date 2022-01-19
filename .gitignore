@@ -1,8 +1,10 @@
 /.bender/
 /bender
+Bender.yml
+Bender.lock
 Bender.local
+
+/ov_cfg/*
 
 /component.xml
 /xgui
-
-/src/ov_acc_pkg.sv
