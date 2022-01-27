@@ -14,93 +14,89 @@
 #
 # =====================================================================
 
+# =====================================================================
+# Variables
+# =====================================================================
+
 ROOT := $(patsubst %/,%, $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
-TCL_DIR := tcl
-REPORTS_DIR := /usr/scratch2/badile14/gbellocchi/design_fpga/reports
+BUILD_TARGET 	:= hero
+BUILD_DIR 		:= ${ROOT}/build
 
-BENDER := ../bender script vivado
-BENDER_FILES := ../bender ../Bender.yml ../Bender.lock
-DEFINE_TCLS := \
-    vivado_ips/define_defines_includes.tcl \
-    vivado_ips/define_defines_includes_no_simset.tcl \
-    vivado_ips/define_sources.tcl
+UTILS_HERO 		:= ${ROOT}/utils/hero
+UTILS_VIVADO 	:= ${ROOT}/utils/vivado_ips
+UTILS_REPORTS 	:= ${ROOT}/utils/reports
 
-VIVADO := vitis-2019.2 vivado
-VIVADO_OPT :=-mode batch
+BENDER 			:= ${ROOT}/../bender script vivado
+BENDER_FILES 	:= ${ROOT}/../bender ${ROOT}/../Bender.yml ${ROOT}/../Bender.lock
 
-DESIGN_NAME := hero_exilzcu102
-
-ifeq ($(UNIMORE),0)
-	DESIGN_LOCATION := ${ROOT}
-endif
-ifeq ($(IIS),1)
-	DESIGN_LOCATION := ${ROOT}
-# ${GBELLOCCHI_SCRATCH2}/design_fpga
-endif
-
-.PHONY: all
-all: build_fpga
+VIVADO 			:= vitis-2019.2 vivado
+VIVADO_OPT 		:=-mode batch
 
 # =====================================================================
-# Recipes:		FPGA design reports
+
+.PHONY: all
+all: build_target
+
+# =====================================================================
+# Recipes:		Design reports
 # =====================================================================
 
 fpga_reports_util:
-	@${VIVADO} ${VIVADO_OPT} -source ${TCL_DIR}/acc_utilization.tcl -tclargs ${DESIGN_NAME} ${DESIGN_LOCATION} ${REPORTS_DIR}
+	@${VIVADO} ${VIVADO_OPT} -source ${UTILS_REPORTS}/acc_utilization.tcl -tclargs ${BUILD_TARGET} ${BUILD_DIR} ${REPORTS_DIR}
 
 fpga_reports_timing:
-	@${VIVADO} ${VIVADO_OPT} -source ${TCL_DIR}/acc_timing.tcl -tclargs ${DESIGN_NAME} ${DESIGN_LOCATION} ${REPORTS_DIR}
+	@${VIVADO} ${VIVADO_OPT} -source ${UTILS_REPORTS}/acc_timing.tcl -tclargs ${BUILD_TARGET} ${BUILD_DIR} ${REPORTS_DIR}
 
 # =====================================================================
-# Recipes:		FPGA system design build
+# Recipes:		FPGA project
 # =====================================================================
 
 open_design:
-	@${VIVADO} ${DESIGN_LOCATION}/${DESIGN_NAME}/${DESIGN_NAME}.xpr
+	@${VIVADO} ${BUILD_DIR}/${BUILD_TARGET}/${BUILD_TARGET}.xpr
 
 fpga_output:
-	@${VIVADO} ${VIVADO_OPT} -source ${TCL_DIR}/fpga_out_files.tcl -tclargs ${DESIGN_NAME} ${DESIGN_LOCATION}
+	@${VIVADO} ${VIVADO_OPT} -source ${UTILS_HERO}/fpga_out_files.tcl -tclargs ${BUILD_TARGET} ${BUILD_DIR}
 
-fpga_build: vivado_ips/pulp_txilzu9eg ${DEFINE_TCLS}
-	@${VIVADO} ${VIVADO_OPT} -source ${TCL_DIR}/${DESIGN_NAME}.tcl -tclargs ${DESIGN_NAME} ${DESIGN_LOCATION}
+build_target: clean_target build_pulp
+	@${VIVADO} ${VIVADO_OPT} \
+		-source ${UTILS_HERO}/hero_exilzcu102.tcl \
+		-tclargs $(BUILD_DIR)/$(BUILD_TARGET)/vivado_prj $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips
 
-vivado_ips/pulp_txilzu9eg: ${DEFINE_TCLS}
-	@cd vivado_ips && ${VIVADO} ${VIVADO_OPT} -source pulp_txilzu9eg.tcl
+# tmp_build_pulp: 
+# 	@cd $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips && ${VIVADO} ${VIVADO_OPT} -source pulp_txilzu9eg.tcl
 
-vivado_ips/pulp_txilzu9eg.v: src/pulp.py src/pulp.template_v
-	@cd src && ./pulp.py > ../$@
-
-design_location:
-	@echo "Target location -> ${DESIGN_LOCATION}"
+build_pulp: clean_pulp_fpga build_env
+	@cd $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips && ${VIVADO} ${VIVADO_OPT} -source pulp_txilzu9eg.tcl
 
 # =====================================================================
-# Recipes:		RTL source management (Bender)
+# Recipes:		Build environment
 # =====================================================================
 
-vivado_ips/define_defines_includes.tcl: $(BENDER_FILES)
-	@${BENDER} --only-defines --only-includes > $@
+build_env: ${BUILD_DIR}/${BUILD_TARGET} fpga_scripts
 
-vivado_ips/define_defines_includes_no_simset.tcl: $(BENDER_FILES)
-	@${BENDER} --only-defines --only-includes --no-simset > $@
+fpga_scripts: $(BENDER_FILES) $(BUILD_ENV)
+	@${BENDER} --only-defines --only-includes > $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips/define_defines_includes.tcl
+	@${BENDER} --only-defines --only-includes --no-simset > $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips/define_defines_includes_no_simset.tcl
+	@${BENDER} --only-sources > $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips/define_sources.tcl
 
-vivado_ips/define_sources.tcl: $(BENDER_FILES)
-	@${BENDER} --only-sources > $@
+${BUILD_DIR}/${BUILD_TARGET}:
+	@echo "FPGA build directory -> $@"
+	@mkdir -p $@/vivado_ips
+	@cp ${UTILS_VIVADO}/* $@/vivado_ips
+	@cp ../ov_cfg/${BUILD_TARGET}/ip/* $@/vivado_ips
 
 ../bender: ../Makefile
 	@make -C .. bender
 
 # =====================================================================
 # Recipes:		Utils
-# =====================================================================
+# ===================================================================== 
 
-.PHONY: clean
-clean: clean_pulp_fpga clean_hero_fpga
-
-clean_hero_fpga:
-	@rm -rf ${DESIGN_LOCATION}/${DESIGN_NAME}
+clean_target:
+	@rm -rf $(BUILD_DIR)/$(BUILD_TARGET)
 
 clean_pulp_fpga:
-	@rm -f vivado_ips/{component.xml,define_*.tcl}
-	@rm -rf vivado_ips/{pulp_txilzu9eg,xgui}
-	@rm -f {,vivado_ips/}vivado*.{jou,log,str}
+	@rm -rf ${BUILD_DIR}/${BUILD_TARGET}/vivado_ips/{component.xml,define_*.tcl}
+	@rm -rf ${BUILD_DIR}/${BUILD_TARGET}/vivado_ips/{pulp_txilzu9eg,xgui}
+	@rm -f ${BUILD_DIR}/${BUILD_TARGET}/{,vivado_ips/}vivado*.{jou,log,str}
