@@ -4,8 +4,6 @@
 # $Date:        18.1.2022
 # =====================================================================
 #
-# Copyright (C) 2021 University of Modena and Reggio Emilia.
-#
 # Authors: 
 #   - Andreas Kurth, ETH Zurich
 #   - Gianluca Bellocchi, University of Modena and Reggio Emilia.

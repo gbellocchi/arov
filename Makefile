@@ -21,7 +21,7 @@ VSIM_PATH 				:= $(realpath ${ROOT}/vsim )
 # Description:  Choose a target overlay configuration to be generated.
 # =====================================================================
 
-TARGET_OV               = ov_a
+TARGET_OV               = ov_empty
 
 BENDER 					= ${ROOT}/bender
 BENDER_PKG				= ${SRC_PATH}/${TARGET_OV}/Bender.yml
@@ -33,6 +33,9 @@ BENDER_LOCK				= ${SRC_PATH}/${TARGET_OV}/Bender.lock
 # Description:  FPGA build.
 # =====================================================================
 
+fpga: bender ${BENDER_PKG} ${BENDER_LOCK}
+	cd ${FPGA_PATH} && make -s all BUILD_TARGET=${TARGET_OV}
+	
 # =====================================================================
 # Description:  Validation test using QuestaSim.
 # =====================================================================
@@ -57,10 +60,10 @@ vsim_clean:
 # =====================================================================
 
 $(BENDER_PKG):
-	@cp $@ ${ROOT}
+	cp $@ ${ROOT}
 
 $(BENDER_LOCK): 
-	@cp $@ ${ROOT}
+	cp $@ ${ROOT}
 bender: Makefile
 	curl --proto '=https' --tlsv1.2 -sSf https://fabianschuiki.github.io/bender/init | sh -s 0.21.0
 	touch $@
