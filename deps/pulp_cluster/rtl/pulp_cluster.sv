@@ -14,19 +14,12 @@
  * Antonio Pullini <pullinia@iis.ee.ethz.ch>
  * Igor Loi <igor.loi@unibo.it>
  * Francesco Conti <fconti@iis.ee.ethz.ch>
- *
- * 
- * Modifications:
- * - Support for accelerator-rich;
- * - Support for heterogeneous interconnection;
- * - Removal of L1 atomic blocks;
- * - Contact: Gianluca Bellocchi <gianluca.bellocchi@unimore.it>
  */
 
 `include "axi/assign.svh"
 `include "axi/typedef.svh"
 
-module pulp_cluster import pulp_cluster_package::*; import apu_package::*; import apu_core_package::*; 
+module pulp_cluster import pulp_cluster_package::*; import apu_package::*; import apu_core_package::*;
 #(
   // cluster parameters
   parameter bit ASYNC_INTF                      = 1'b1,
@@ -34,15 +27,19 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
   parameter bit CLUSTER_ALIAS                   = 1'b1,
   parameter int CLUSTER_ALIAS_BASE              = 12'h1B0,
 
-  // HWPE wrappers - LIC interconnect
+  // HWPE wrappers 
+  // - LIC interconnect
   parameter int NB_HWPE_LIC                     = 0,
   parameter int NB_HWPE_LIC_PORTS_TOTAL         = 0,
   parameter bit HWPE_LIC_PRESENT                = 0,
 
-  // HWPE wrappers - HCI interconnect
+  // - HCI interconnect
   parameter int NB_HWPE_HCI                     = 0,
   parameter int NB_HWPE_HCI_PORTS_TOTAL         = 0,
   parameter bit HWPE_HCI_PRESENT                = 0,
+
+  // - General
+  parameter int NB_HWPE_TOTAL                   = (NB_HWPE_HCI>0)? (NB_HWPE_LIC+1) : (NB_HWPE_LIC),
 
   // I$ parameters
   parameter int SET_ASSOCIATIVE                 = 4,
@@ -81,6 +78,7 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
   parameter int BE_WIDTH                        = DATA_WIDTH/8,
   parameter int TEST_SET_BIT                    = 20,                       // bit used to indicate a test-and-set operation during a load in TCDM
   parameter int ADDR_MEM_WIDTH                  = $clog2(TCDM_BANK_SIZE/4), // WORD address width per TCDM bank (the word width is 32 bits)
+  parameter bit L1_AMO_PRESENT                  = 0,
 
   // DMA parameters
   parameter int NB_DMAS                         = 4,
@@ -89,7 +87,7 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
 
   // peripheral and periph interconnect parameters
   parameter int NB_MPERIPHS                     = 1,
-  parameter int NB_SPERIPHS                     = 8 + NB_HWPE_LIC,
+  parameter int NB_SPERIPHS                     = 8, // CHANGE
   parameter int LOG_CLUSTER                     = 5,  // unused
   parameter int PE_ROUTING_LSB                  = 10, // LSB used as routing BIT in periph interco
   parameter int PE_ROUTING_MSB                  = 13, // MSB used as routing BIT in periph interco
@@ -285,9 +283,6 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
 
 );
 
-  // HWPE wrappers - Local parameters
-  localparam NB_HWPE = (NB_HWPE_HCI>0)? (NB_HWPE_LIC+1) : (NB_HWPE_LIC);
-
   logic [NB_CORES-1:0]                fetch_enable_reg_int;
   logic [NB_CORES-1:0]                fetch_en_int;
   logic                               s_rst_n;
@@ -296,6 +291,8 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
   logic [NB_CORES-1:0]                dbg_core_halt;
   logic [NB_CORES-1:0]                dbg_core_resume;
   logic [NB_CORES-1:0]                dbg_core_halted;
+  logic                               hwpe_sel;
+  logic                               hwpe_en;
 
   localparam TRYX_ADDREXT_WIDTH = AXI_ADDR_WIDTH - 32;
   localparam TRYX_ADDREXT = (AXI_ADDR_WIDTH > 32);
@@ -318,18 +315,13 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
   logic [NB_CORES-1:0] s_dma_event;
   logic [NB_CORES-1:0] s_dma_irq;
 
+  // Hardware accelerators
+  logic [NB_CORES-1:0][3:0]  s_hwacc_events;
+  logic [NB_CORES-1:0][1:0]  s_lic_acc_evt;
+  logic                      s_lic_acc_busy;
+
   logic [NB_CORES-1:0]               clk_core_en;
   logic                              clk_cluster;
-
-  // Hardware accelerators
-
-  logic                                    hwpe_sel;        // CLUSTER CONTROL UNIT - How are these used?
-  logic                                    hwpe_en;         // CLUSTER CONTROL UNIT - How are these used?
-
-  logic [NB_HWPE-1:0][NB_CORES-1:0][3:0]  s_hwacc_events;  // EVENT signals - Accelerator-specific -> EVENT UNIT
-  logic [NB_HWPE-1:0][NB_CORES-1:0][1:0]  s_hwacc_evt;     // EVENT signals - Accelerator-specific -> EVENT UNIT
-
-  logic                                    s_hwacc_busy;    // BUSY signal - Accelerator region -> Control CLUSTER CLOCK GATING
 
   // CLK reset, and other control signals
 
@@ -462,8 +454,8 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
   XBAR_PERIPH_BUS s_xbar_speriph_bus[NB_SPERIPHS-1:0]();
   logic [NB_SPERIPHS-1:0][5:0] s_xbar_speriph_atop;
 
-  // periph interconnect -> HWACC
-  XBAR_PERIPH_BUS s_hwacc_cfg_bus[NB_HWPE-1:0]();
+  // periph interconnect -> XNE
+  XBAR_PERIPH_BUS s_hwpe_cfg_slave[NB_HWPE_TOTAL-1:0]();
 
   // DMA -> log interconnect
   XBAR_TCDM_BUS s_dma_xbar_bus[NB_DMAS-1:0]();
@@ -523,7 +515,7 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
   );
 
   /* fetch & busy genertion */
-  assign s_cluster_int_busy = s_cluster_periphs_busy | s_per2axi_busy | s_axi2per_busy | s_axi2mem_busy | s_dmac_busy | s_hwacc_busy;
+  assign s_cluster_int_busy = s_cluster_periphs_busy | s_per2axi_busy | s_axi2per_busy | s_axi2mem_busy | s_dmac_busy | s_lic_acc_busy;
   assign busy_o = s_cluster_int_busy | (|core_busy);
   assign fetch_en_int = fetch_enable_reg_int;
 
@@ -732,24 +724,25 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
     assign s_core_periph_bus_addrext[i] = tryx_req[i].addrext;
   end
   cluster_interconnect_wrap #(
-    .NB_CORES               ( NB_CORES                ),
-    .NB_HWPE_PORTS_TOTAL    ( NB_HWPE_LIC_PORTS_TOTAL ),
-    .NB_DMAS                ( NB_DMAS                 ),
-    .NB_EXT                 ( NB_EXT2MEM              ),
-    .NB_MPERIPHS            ( NB_MPERIPHS             ),
-    .NB_TCDM_BANKS          ( NB_TCDM_BANKS           ),
-    .NB_SPERIPHS            ( NB_SPERIPHS             ),
-    .DATA_WIDTH             ( DATA_WIDTH              ),
-    .ADDR_WIDTH             ( ADDR_WIDTH              ),
-    .BE_WIDTH               ( BE_WIDTH                ),
-    .TEST_SET_BIT           ( TEST_SET_BIT            ),
-    .ADDR_MEM_WIDTH         ( ADDR_MEM_WIDTH          ),
-    .LOG_CLUSTER            ( LOG_CLUSTER             ),
-    .PE_ROUTING_LSB         ( PE_ROUTING_LSB          ),
-    .PE_ROUTING_MSB         ( PE_ROUTING_MSB          ),
-    .ADDREXT                ( TRYX_ADDREXT            ),
-    .CLUSTER_ALIAS          ( CLUSTER_ALIAS           ),
-    .CLUSTER_ALIAS_BASE     ( CLUSTER_ALIAS_BASE      )
+    .NB_CORES           ( NB_CORES                  ),
+    .NB_HWACC_PORTS     ( NB_HWPE_LIC_PORTS_TOTAL   ),
+    .NB_DMAS            ( NB_DMAS                   ),
+    .NB_EXT             ( NB_EXT2MEM                ),
+    .NB_MPERIPHS        ( NB_MPERIPHS               ),
+    .NB_TCDM_BANKS      ( NB_TCDM_BANKS             ),
+    .NB_SPERIPHS        ( NB_SPERIPHS               ),
+    .DATA_WIDTH         ( DATA_WIDTH                ),
+    .ADDR_WIDTH         ( ADDR_WIDTH                ),
+    .BE_WIDTH           ( BE_WIDTH                  ),
+    .TEST_SET_BIT       ( TEST_SET_BIT              ),
+    .ADDR_MEM_WIDTH     ( ADDR_MEM_WIDTH            ),
+    .LOG_CLUSTER        ( LOG_CLUSTER               ),
+    .PE_ROUTING_LSB     ( PE_ROUTING_LSB            ),
+    .PE_ROUTING_MSB     ( PE_ROUTING_MSB            ),
+    .ADDREXT            ( TRYX_ADDREXT              ),
+    .CLUSTER_ALIAS      ( CLUSTER_ALIAS             ),
+    .CLUSTER_ALIAS_BASE ( CLUSTER_ALIAS_BASE        ),
+    .L1_AMO_PRESENT     ( L1_AMO_PRESENT            )
   ) cluster_interconnect_wrap_i (
     .clk_i                  ( clk_cluster                         ),
     .rst_ni                 ( rst_ni                              ),
@@ -796,11 +789,12 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
 
   cluster_peripherals #(
     .NB_CORES       ( NB_CORES       ),
-    .NB_HWPE        ( NB_HWPE        ),
+    .NB_HWPE        ( NB_HWPE_TOTAL  ),
     .NB_MPERIPHS    ( NB_MPERIPHS    ),
     .NB_CACHE_BANKS ( NB_CACHE_BANKS ),
     .NB_SPERIPHS    ( NB_SPERIPHS    ),
     .NB_TCDM_BANKS  ( NB_TCDM_BANKS  ),
+    .NB_HWPE_PORTS  ( 1              ),
     .ROM_BOOT_ADDR  ( ROM_BOOT_ADDR  ),
     .BOOT_ADDR      ( BOOT_ADDR      ),
     .EVNT_WIDTH     ( EVNT_WIDTH     )
@@ -818,7 +812,7 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
     .core_busy_i            ( core_busy                          ),
     .core_clk_en_o          ( clk_core_en                        ),
     .fregfile_disable_o     ( s_fregfile_disable                 ),
-    .speriph_slave          ( s_xbar_speriph_bus[NB_SPERIPHS-2:0]),
+    .speriph_slave          ( s_xbar_speriph_bus[NB_SPERIPHS-1:0]),
     .core_eu_direct_link    ( s_core_euctrl_bus                  ),
     .dma_cfg_master         ( s_periph_dma_bus                   ),
     .dma_pe_irq_i           ( s_dma_pe_irq                       ),
@@ -837,7 +831,7 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
     .irq_req_o              ( irq_req                            ),
     .irq_ack_i              ( irq_ack                            ),
     .TCDM_arb_policy_o      ( s_TCDM_arb_policy                  ),
-    .hwce_cfg_master        ( s_hwacc_cfg_bus                    ),
+    .hwce_cfg_master        ( s_hwpe_cfg_slave                   ),
     .hwacc_events_i         ( s_hwacc_events                     ),
     .hwpe_sel_o             ( hwpe_sel                           ),
     .hwpe_en_o              ( hwpe_en                            ),
@@ -926,12 +920,13 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
   endgenerate
 
   /* cluster-coupled accelerators / HW processing engines */
+
   generate
     if(HWPE_LIC_PRESENT == 1) begin : lic_acc_region_gen
 
-      lic_acc_region #(
+       lic_acc_region #(
         .NB_CORES                 ( NB_CORES                ),
-        .NB_HWPE                  ( NB_HWPE                 ),
+        .NB_HWPE                  ( NB_HWPE_LIC             ),
         .NB_HWPE_LIC_PORTS_TOTAL  ( NB_HWPE_LIC_PORTS_TOTAL ),
         .ID_WIDTH                 ( NB_CORES+NB_MPERIPHS    )
       ) lic_acc_region_i (
@@ -939,38 +934,50 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
         .rst_n             ( s_rst_n                                                        ),
         .test_mode         ( test_mode_i                                                    ),
         .hwpe_xbar_master  ( s_core_xbar_bus[NB_CORES+NB_HWPE_LIC_PORTS_TOTAL-1:NB_CORES]   ),
-        .hwpe_cfg_slave    ( s_hwacc_cfg_bus                                                ),
-        .evt_o             ( s_hwacc_evt                                                    ),
-        .busy_o            ( s_hwacc_busy                                                   )
+        .hwpe_cfg_slave    ( s_hwpe_cfg_slave                                               ),
+        .evt_o             ( s_lic_acc_evt                                                  ),
+        .busy_o            ( s_lic_acc_busy                                                 )
       );
+
 
     end
     else begin : no_lic_acc_region_gen
 
-      for(genvar i=0; i<NB_HWPE; i++) begin : no_hwacc_bias_0
-        assign s_hwacc_cfg_bus[i].r_valid = '1;
-        assign s_hwacc_cfg_bus[i].gnt = '1;
-        assign s_hwacc_cfg_bus[i].r_rdata = 32'hdeadbeef;
-        assign s_hwacc_cfg_bus[i].r_id = '0;
-        for (genvar j=NB_CORES; j<NB_CORES+NB_HWPE_LIC_PORTS_TOTAL; j++) begin : no_hwacc_bias_1
-          assign s_core_xbar_bus[j].req = '0;
-          assign s_core_xbar_bus[j].wen = '0;
-          assign s_core_xbar_bus[j].be  = '0;
-          assign s_core_xbar_bus[j].wdata = '0;
-        end
-        assign s_hwacc_busy = '0;
-        assign s_hwacc_evt[i]  = '0;
+      for(genvar i=0; i<NB_HWPE_TOTAL; i++) begin : no_periph_acc_bias
+        assign s_hwpe_cfg_slave[i].r_valid = '1;
+        assign s_hwpe_cfg_slave[i].gnt = '1;
+        assign s_hwpe_cfg_slave[i].r_rdata = 32'hdeadbeef;
+        assign s_hwpe_cfg_slave[i].r_id = '0;
       end
+
+      for (genvar i=NB_CORES; i<NB_CORES+NB_HWPE_LIC_PORTS_TOTAL; i++) begin : no_lic_acc_bias
+        assign s_core_xbar_bus[i].req = '0;
+        assign s_core_xbar_bus[i].wen = '0;
+        assign s_core_xbar_bus[i].be  = '0;
+        assign s_core_xbar_bus[i].wdata = '0;
+      end
+
+      // assign s_hwpe_cfg_slave[0].r_valid = '1;
+      // assign s_hwpe_cfg_slave[0].gnt = '1;
+      // assign s_hwpe_cfg_slave[0].r_rdata = 32'hdeadbeef;
+      // assign s_hwpe_cfg_slave[0].r_id = '0;
+      // for (genvar i=NB_CORES; i<NB_CORES+NB_HWPE_LIC_PORTS_TOTAL ; i++) begin : no_lic_acc_bias
+      //   assign s_core_xbar_bus[i].req = '0;
+      //   assign s_core_xbar_bus[i].wen = '0;
+      //   assign s_core_xbar_bus[i].be  = '0;
+      //   assign s_core_xbar_bus[i].wdata = '0;
+      // end
+
+      assign s_lic_acc_busy = '0;
+      assign s_lic_acc_evt = '0;
 
     end
   endgenerate
 
   generate
-    for(genvar i=0; i<NB_HWPE; i++) begin : hwacc_event_interrupt_gen_0
-      for(genvar j=0; j<NB_CORES; j++) begin : hwacc_event_interrupt_gen_1
-        assign s_hwacc_events[i][j][3:2] = '0;
-        assign s_hwacc_events[i][j][1:0] = s_hwacc_evt[i][j];
-      end
+    for(genvar i=0; i<NB_CORES; i++) begin : hwacc_event_interrupt_gen
+      assign s_hwacc_events[i][3:2] = '0;
+      assign s_hwacc_events[i][1:0] = s_lic_acc_evt[i];
     end
   endgenerate
 

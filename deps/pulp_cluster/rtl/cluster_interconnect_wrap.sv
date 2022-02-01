@@ -18,30 +18,31 @@
 
 module cluster_interconnect_wrap
 #(
-  parameter NB_CORES              = 8,
-  parameter NB_HWPE_PORTS_TOTAL   = 4,
-  parameter NB_DMAS               = 4,
-  parameter NB_EXT                = 4,
-  parameter NB_MPERIPHS           = 1,
-  parameter NB_TCDM_BANKS         = 16,
-  parameter NB_SPERIPHS           = 3,
-  parameter DATA_WIDTH            = 32,
-  parameter ADDR_WIDTH            = 32,
-  parameter BE_WIDTH              = DATA_WIDTH/8,
+  parameter NB_CORES            = 8,
+  parameter NB_HWACC_PORTS      = 4,
+  parameter NB_DMAS             = 4,
+  parameter NB_EXT              = 4,
+  parameter NB_MPERIPHS         = 1,
+  parameter NB_TCDM_BANKS       = 16,
+  parameter NB_SPERIPHS         = 3,
+  parameter DATA_WIDTH          = 32,
+  parameter ADDR_WIDTH          = 32,
+  parameter BE_WIDTH            = DATA_WIDTH/8,
   //TCDM PARAMETERS
-  parameter TEST_SET_BIT    = 20,
-  parameter ADDR_MEM_WIDTH  = 11,
-  parameter LOG_CLUSTER     = 5,
-  parameter PE_ROUTING_LSB  = 16,
-  parameter PE_ROUTING_MSB  = 19,
-  parameter ADDREXT         = 1'b0,
-  parameter CLUSTER_ALIAS      = 1'b0,
-  parameter CLUSTER_ALIAS_BASE = 12'h000
+  parameter TEST_SET_BIT        = 20,
+  parameter ADDR_MEM_WIDTH      = 11,
+  parameter LOG_CLUSTER         = 5,
+  parameter PE_ROUTING_LSB      = 16,
+  parameter PE_ROUTING_MSB      = 19,
+  parameter ADDREXT             = 1'b0,
+  parameter CLUSTER_ALIAS       = 1'b0,
+  parameter CLUSTER_ALIAS_BASE  = 12'h000,
+  parameter L1_AMO_PRESENT      = 1'b0
 )
 (
   input logic                          clk_i,
   input logic                          rst_ni,
-  XBAR_TCDM_BUS.Slave                  core_tcdm_slave[NB_CORES+NB_HWPE_PORTS_TOTAL-1:0],
+  XBAR_TCDM_BUS.Slave                  core_tcdm_slave[NB_CORES+NB_HWACC_PORTS-1:0],
   input logic [NB_CORES-1:0][5:0]      core_tcdm_slave_atop,
   XBAR_PERIPH_BUS.Slave                core_periph_slave[NB_CORES-1:0],
   input logic [NB_CORES-1:0][5:0]      core_periph_slave_atop,
@@ -56,7 +57,7 @@ module cluster_interconnect_wrap
   input logic [1:0]                    TCDM_arb_policy_i
 );
 
-  localparam TCDM_ID_WIDTH = NB_CORES+NB_DMAS+NB_EXT+NB_HWPE_PORTS_TOTAL;
+  localparam TCDM_ID_WIDTH = NB_CORES+NB_DMAS+NB_EXT+NB_HWACC_PORTS;
 
   // DMA --> LOGARITHMIC INTERCONNECT BUS SIGNALS
   logic [NB_EXT+NB_DMAS-1:0][DATA_WIDTH-1:0] s_dma_bus_wdata;
@@ -69,33 +70,31 @@ module cluster_interconnect_wrap
   logic [NB_EXT+NB_DMAS-1:0]                 s_dma_bus_r_valid;
 
   // DEMUX --> LOGARITHMIC INTERCONNECT BUS SIGNALS
-  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0][DATA_WIDTH-1:0] s_core_tcdm_bus_wdata;
-  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0][ADDR_WIDTH-1:0] s_core_tcdm_bus_add;
-  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0]                 s_core_tcdm_bus_req;
-  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0]                 s_core_tcdm_bus_wen;
-  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0][BE_WIDTH-1:0]   s_core_tcdm_bus_be;
-  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0]                 s_core_tcdm_bus_gnt;
-  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0][DATA_WIDTH-1:0] s_core_tcdm_bus_r_rdata;
-  logic [NB_CORES+NB_HWPE_PORTS_TOTAL-1:0]                 s_core_tcdm_bus_r_valid;
+  logic [NB_CORES+NB_HWACC_PORTS-1:0][DATA_WIDTH-1:0] s_core_tcdm_bus_wdata;
+  logic [NB_CORES+NB_HWACC_PORTS-1:0][ADDR_WIDTH-1:0] s_core_tcdm_bus_add;
+  logic [NB_CORES+NB_HWACC_PORTS-1:0]                 s_core_tcdm_bus_req;
+  logic [NB_CORES+NB_HWACC_PORTS-1:0]                 s_core_tcdm_bus_wen;
+  logic [NB_CORES+NB_HWACC_PORTS-1:0][BE_WIDTH-1:0]   s_core_tcdm_bus_be;
+  logic [NB_CORES+NB_HWACC_PORTS-1:0]                 s_core_tcdm_bus_gnt;
+  logic [NB_CORES+NB_HWACC_PORTS-1:0][DATA_WIDTH-1:0] s_core_tcdm_bus_r_rdata;
+  logic [NB_CORES+NB_HWACC_PORTS-1:0]                 s_core_tcdm_bus_r_valid;
 
-  `ifdef L1_ATOMIC_PRESENT
-    // LOGARITHMIC INTERCONNECT --> AMO Shims
-    logic [NB_TCDM_BANKS-1:0][ADDR_MEM_WIDTH-1:0] s_tcdm_bus_amo_shim_add;
-    logic [NB_TCDM_BANKS-1:0]                     s_tcdm_bus_amo_shim_req;
-    logic [NB_TCDM_BANKS-1:0]                     s_tcdm_bus_amo_shim_gnt;
-    logic [NB_TCDM_BANKS-1:0]                     s_tcdm_bus_amo_shim_wen;
-    logic [NB_TCDM_BANKS-1:0][BE_WIDTH-1:0]       s_tcdm_bus_amo_shim_be;
-  `else
-    // LOGARITHMIC INTERCONNECT
-    logic [NB_TCDM_BANKS-1:0][ADDR_MEM_WIDTH-1:0] s_tcdm_bus_add;
-    logic [NB_TCDM_BANKS-1:0]                     s_tcdm_bus_req;
-    logic [NB_TCDM_BANKS-1:0]                     s_tcdm_bus_gnt;
-    logic [NB_TCDM_BANKS-1:0]                     s_tcdm_bus_wen;
-    logic [NB_TCDM_BANKS-1:0][BE_WIDTH-1:0]       s_tcdm_bus_be;
-  `endif
+  // LOGARITHMIC INTERCONNECT
+  logic [NB_TCDM_BANKS-1:0][ADDR_MEM_WIDTH-1:0] s_tcdm_bus_add;
+  logic [NB_TCDM_BANKS-1:0]                     s_tcdm_bus_req;
+  logic [NB_TCDM_BANKS-1:0]                     s_tcdm_bus_gnt;
+  logic [NB_TCDM_BANKS-1:0]                     s_tcdm_bus_wen;
+  logic [NB_TCDM_BANKS-1:0][BE_WIDTH-1:0]       s_tcdm_bus_be;
+
+  // LOGARITHMIC INTERCONNECT --> AMO Shims
+  logic [NB_TCDM_BANKS-1:0][ADDR_MEM_WIDTH-1:0] s_tcdm_bus_amo_shim_add;
+  logic [NB_TCDM_BANKS-1:0]                     s_tcdm_bus_amo_shim_req;
+  logic [NB_TCDM_BANKS-1:0]                     s_tcdm_bus_amo_shim_gnt;
+  logic [NB_TCDM_BANKS-1:0]                     s_tcdm_bus_amo_shim_wen;
+  logic [NB_TCDM_BANKS-1:0][BE_WIDTH-1:0]       s_tcdm_bus_amo_shim_be;
 
   generate
-    for (genvar i=0; i<NB_CORES+NB_HWPE_PORTS_TOTAL; i++) begin : CORE_TCDM_BIND
+    for (genvar i=0; i<NB_CORES+NB_HWACC_PORTS; i++) begin : CORE_TCDM_BIND
       assign s_core_tcdm_bus_add[i]      = core_tcdm_slave[i].add;
       assign s_core_tcdm_bus_req[i]      = core_tcdm_slave[i].req;
       assign s_core_tcdm_bus_wdata[i]    = core_tcdm_slave[i].wdata;
@@ -136,7 +135,7 @@ module cluster_interconnect_wrap
     end
   endgenerate
 
-  localparam NUM_TCDM_ICONN_IN = NB_CORES + NB_HWPE_PORTS_TOTAL + NB_DMAS + NB_EXT;
+  localparam NUM_TCDM_ICONN_IN = NB_CORES + NB_HWACC_PORTS + NB_DMAS + NB_EXT;
   typedef struct packed {
     logic [DATA_WIDTH-1:0]  data;
     logic [5:0]             atop;
@@ -144,11 +143,8 @@ module cluster_interconnect_wrap
   tcdm_data_t [NUM_TCDM_ICONN_IN-1:0] iconn_inp_wdata, iconn_inp_rdata;
   tcdm_data_t     [NB_TCDM_BANKS-1:0] iconn_oup_wdata, iconn_oup_rdata;
 
-  /* ----------------------------------------------------- */
-
-  /* If not using AMO SHIM */
-
-  `ifdef L1_ATOMIC_PRESENT 
+  /* TCDM interconnect -> AMO shim (atomic memory ops) -> SRAM */
+  if(L1_AMO_PRESENT == 1) begin : tcdm_interco_w_amo
     tcdm_interconnect #(
       .NumIn        ( NUM_TCDM_ICONN_IN           ),
       .NumOut       ( NB_TCDM_BANKS               ),
@@ -182,12 +178,12 @@ module cluster_interconnect_wrap
     );
 
     for (genvar i = 0; i < NUM_TCDM_ICONN_IN; i++) begin : gen_iconn_pack_inp_data
-      if (i < NB_CORES + NB_HWPE_PORTS_TOTAL) begin
+      if (i < NB_CORES + NB_HWACC_PORTS) begin
         assign iconn_inp_wdata[i].data = s_core_tcdm_bus_wdata[i];
         assign s_core_tcdm_bus_r_rdata[i] = iconn_inp_rdata[i].data;
       end else begin
-        assign iconn_inp_wdata[i].data = s_dma_bus_wdata[i - (NB_CORES + NB_HWPE_PORTS_TOTAL)];
-        assign s_dma_bus_r_rdata[i - (NB_CORES + NB_HWPE_PORTS_TOTAL)] = iconn_inp_rdata[i].data;
+        assign iconn_inp_wdata[i].data = s_dma_bus_wdata[i - (NB_CORES + NB_HWACC_PORTS)];
+        assign s_dma_bus_r_rdata[i - (NB_CORES + NB_HWACC_PORTS)] = iconn_inp_rdata[i].data;
       end
       if (i < NB_CORES) begin
         assign iconn_inp_wdata[i].atop = core_tcdm_slave_atop[i];
@@ -264,8 +260,12 @@ module cluster_interconnect_wrap
       end
       assign tcdm_sram_master[i].wen = ~write_enable;
     end
-  `else
-  tcdm_interconnect #(
+
+  end
+
+  /* TCDM interconnect -> SRAM */
+  else begin : tcdm_interco_no_amo
+    tcdm_interconnect #(
       .NumIn        ( NUM_TCDM_ICONN_IN           ),
       .NumOut       ( NB_TCDM_BANKS               ),
       .AddrWidth    ( ADDR_WIDTH                  ),
@@ -288,22 +288,22 @@ module cluster_interconnect_wrap
       .vld_o    ( { s_dma_bus_r_valid,  s_core_tcdm_bus_r_valid}  ),
       .rdata_o  ( iconn_inp_rdata                                 ),
 
-      .req_o    ( s_tcdm_bus_req   ),
-      .gnt_i    ( s_tcdm_bus_gnt   ),
-      .add_o    ( s_tcdm_bus_add   ),
-      .wen_o    ( s_tcdm_bus_wen   ),
-      .wdata_o  ( iconn_oup_wdata  ),
-      .be_o     ( s_tcdm_bus_be    ),
-      .rdata_i  ( iconn_oup_rdata  )
+      .req_o    ( s_tcdm_bus_req                                  ),
+      .gnt_i    ( s_tcdm_bus_gnt                                  ),
+      .add_o    ( s_tcdm_bus_add                                  ),
+      .wen_o    ( s_tcdm_bus_wen                                  ),
+      .wdata_o  ( iconn_oup_wdata                                 ),
+      .be_o     ( s_tcdm_bus_be                                   ),
+      .rdata_i  ( iconn_oup_rdata                                 )
     );
 
     for (genvar i = 0; i < NUM_TCDM_ICONN_IN; i++) begin : gen_iconn_pack_inp_data
-      if (i < NB_CORES + NB_HWPE_PORTS_TOTAL) begin
+      if (i < NB_CORES + NB_HWACC_PORTS) begin
         assign iconn_inp_wdata[i].data = s_core_tcdm_bus_wdata[i];
         assign s_core_tcdm_bus_r_rdata[i] = iconn_inp_rdata[i].data;
       end else begin
-        assign iconn_inp_wdata[i].data = s_dma_bus_wdata[i - (NB_CORES + NB_HWPE_PORTS_TOTAL)];
-        assign s_dma_bus_r_rdata[i - (NB_CORES + NB_HWPE_PORTS_TOTAL)] = iconn_inp_rdata[i].data;
+        assign iconn_inp_wdata[i].data = s_dma_bus_wdata[i - (NB_CORES + NB_HWACC_PORTS)];
+        assign s_dma_bus_r_rdata[i - (NB_CORES + NB_HWACC_PORTS)] = iconn_inp_rdata[i].data;
       end
       if (i < NB_CORES) begin
         assign iconn_inp_wdata[i].atop = core_tcdm_slave_atop[i];
@@ -323,7 +323,7 @@ module cluster_interconnect_wrap
       assign tcdm_sram_master[i].wdata  = iconn_oup_wdata[i].data;
       assign iconn_oup_rdata[i].data    = tcdm_sram_master[i].rdata;
     end
-  `endif
+  end
 
   localparam int unsigned PE_XBAR_N_INPS = NB_CORES + NB_MPERIPHS;
   localparam int unsigned PE_XBAR_N_OUPS = NB_SPERIPHS;
