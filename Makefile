@@ -12,6 +12,7 @@
 
 ROOT 					:= $(patsubst %/,%, $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
+ARCHEX_PATH 			:= $(realpath ${ROOT}/archex )
 FPGA_PATH 				:= $(realpath ${ROOT}/fpga )
 SRC_PATH 				:= $(realpath ${ROOT}/ov_cfg )
 TEST_PATH 				:= $(realpath ${ROOT}/test )
@@ -21,7 +22,9 @@ VSIM_PATH 				:= $(realpath ${ROOT}/vsim )
 # Description:  Choose a target overlay configuration to be generated.
 # =====================================================================
 
-TARGET_OV               = ov_empty
+TARGET_OV               := ov_mdc_lic6wr
+
+GENOV 					= ${ROOT}/../genov
 
 BENDER 					= ${ROOT}/bender
 BENDER_PKG				= ${SRC_PATH}/${TARGET_OV}/Bender.yml
@@ -33,8 +36,22 @@ BENDER_LOCK				= ${SRC_PATH}/${TARGET_OV}/Bender.lock
 # Description:  FPGA build.
 # =====================================================================
 
-fpga: bender ${BENDER_PKG} ${BENDER_LOCK}
-	cd ${FPGA_PATH} && make -s all BUILD_TARGET=${TARGET_OV}
+reports_export_archex:
+	cd ${ARCHEX_PATH} && make -s get_reports REPORT_PATH=${FPGA_PATH}/build/${TARGET_OV}/reports
+
+# =====================================================================
+# Description:  FPGA build.
+# =====================================================================
+fpga: build_fpga reports_fpga
+
+reports_fpga:
+	cd ${FPGA_PATH} && make -s $@ BUILD_TARGET=${TARGET_OV}
+
+reports_ls:
+	ls ${FPGA_PATH}/build/${TARGET_OV}/reports
+
+build_fpga: bender ${BENDER_PKG} ${BENDER_LOCK}
+	cd ${FPGA_PATH} && make -s $@ BUILD_TARGET=${TARGET_OV}
 	
 # =====================================================================
 # Description:  Validation test using QuestaSim.
@@ -64,9 +81,15 @@ $(BENDER_PKG):
 
 $(BENDER_LOCK): 
 	cp $@ ${ROOT}
+
+morty: Makefile
+	wget https://github.com/zarubaf/morty/releases/download/v0.6.0/morty-centos.7-x86_64.tar.gz
+	tar -xf morty-centos.7-x86_64.tar.gz $@
+	rm -rf morty-centos.7-x86_64.tar.gz
 bender: Makefile
 	curl --proto '=https' --tlsv1.2 -sSf https://fabianschuiki.github.io/bender/init | sh -s 0.21.0
 	touch $@
+
 clean:
 	@rm -rf .bender
 	@rm -rf Bender.yml
