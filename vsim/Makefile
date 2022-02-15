@@ -19,7 +19,9 @@ SLM_FILES 				:= $(TEST_PATH)/slm_files
 # Description:  Application test.
 # =====================================================================
 
-TEST_APP := $(realpath ${SRC_PATH}/${TARGET_OV}/test/sw )
+# TEST_APP := $(realpath ${SRC_PATH}/${TARGET_OV}/test/sw )
+TEST_APP := $(realpath ${SRC_PATH}/ov_mdc_lic6wr_backup/test/sw )
+TEST_HERO := $(realpath ${HERO_OV_OPENMP_TESTS}/helloworld )
 
 # =====================================================================
 # Description:  QuestaSim GUI.
@@ -27,7 +29,7 @@ TEST_APP := $(realpath ${SRC_PATH}/${TARGET_OV}/test/sw )
 
 VSIM_GUI := 1
 
-all: compile start_sim
+all: compile gen_slm_files start_sim
 
 start_sim: 
 	@echo -e '>> Start simulation.'
@@ -36,6 +38,10 @@ start_sim:
 gen_slm_files:
 	@echo -e '>> Searching for software test in $(TEST_APP).'
 	@$(TEST_PATH)/$@.sh $(TEST_APP)
+
+gen_hero_slm_files:
+	@echo -e '>> Searching for software test in $(TEST_HERO).'
+	@$(TEST_PATH)/gen_slm_files.sh $(TEST_HERO)
 
 compile:
 	@echo -e '>> Compiling RTL.'
