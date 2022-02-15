@@ -35,7 +35,6 @@ sources:
   - rtl/periph_FIFO.sv
   - rtl/periph_demux.sv
   - rtl/tryx_ctrl.sv
-  - rtl/xne_wrap.sv
   - rtl/cluster_dma_transfer_id_gen.sv
   - rtl/cluster_dma_frontend_regs.sv
   # Level 1
