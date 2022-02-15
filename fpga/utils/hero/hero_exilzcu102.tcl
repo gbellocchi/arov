@@ -187,4 +187,3 @@ file copy -force ${prj_dir}/hero_exilzcu102.runs/impl_1/hero_exilzcu102_wrapper.
 
 # Export Xilinx Support Archive (XSA) file.
 write_hw_platform -fixed -force  -include_bit -file ${prj_dir}/hero_exilzcu102_wrapper.xsa
-

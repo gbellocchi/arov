@@ -1,11 +1,27 @@
+# =====================================================================
+# Project:      HERO
+# Title:        fpga_out_files.tcl
+# Description:  TCL script to output important design files.
+#
+# $Date:        15.09.2021
+# =====================================================================
+#
+# Copyright (C) 2021 University of Modena and Reggio Emilia..
+#
+# Author: Gianluca Bellocchi, University of Modena and Reggio Emilia.
+#
+# =====================================================================
+
 # Design name.
 set design_name [lindex $argv 0]
-puts "System-level integration of $design_name accelerator IP using standard Xilinx methodology"
+puts "Design name - $design_name"
 
-# Vivado project location.
-set vivado_dir [lindex $argv 1]
-set prj_dir "$vivado_dir/$design_name"
-puts "Vivado project is going to be located in $prj_dir"
+# Build directory
+set build_dir [lindex $argv 1]
+
+# Project directory
+set prj_dir "$build_dir/$design_name/vivado_prj"
+puts "Vivado project directory - $prj_dir"
 
 # Open project
 open_project ${prj_dir}/hero_exilzcu102.xpr

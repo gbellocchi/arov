@@ -20,7 +20,7 @@
 
 ROOT := $(patsubst %/,%, $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
-BUILD_TARGET 	:= hero
+BUILD_TARGET 	:= ov_mdc_saturation
 BUILD_DIR 		:= ${ROOT}/build
 
 UTILS_HERO 		:= ${ROOT}/utils/hero
@@ -36,24 +36,23 @@ VIVADO_OPT 		:=-mode batch
 # =====================================================================
 
 .PHONY: all
-all: build_target
+all: build_target fpga_output reports
 
 # =====================================================================
 # Recipes:		Design reports
 # =====================================================================
 
-fpga_reports_util:
-	@${VIVADO} ${VIVADO_OPT} -source ${UTILS_REPORTS}/acc_utilization.tcl -tclargs ${BUILD_TARGET} ${BUILD_DIR} ${REPORTS_DIR}
-
-fpga_reports_timing:
-	@${VIVADO} ${VIVADO_OPT} -source ${UTILS_REPORTS}/acc_timing.tcl -tclargs ${BUILD_TARGET} ${BUILD_DIR} ${REPORTS_DIR}
+reports_fpga:
+	@${VIVADO} ${VIVADO_OPT} -source ${UTILS_REPORTS}/reports.tcl -tclargs ${BUILD_TARGET} ${BUILD_DIR} ${UTILS_REPORTS}
 
 # =====================================================================
 # Recipes:		FPGA project
 # =====================================================================
 
 open_design:
-	@${VIVADO} ${BUILD_DIR}/${BUILD_TARGET}/${BUILD_TARGET}.xpr
+	@${VIVADO} ${BUILD_DIR}/${BUILD_TARGET}/vivado_prj/hero_exilzcu102.xpr
+
+build_fpga: build_target fpga_output
 
 fpga_output:
 	@${VIVADO} ${VIVADO_OPT} -source ${UTILS_HERO}/fpga_out_files.tcl -tclargs ${BUILD_TARGET} ${BUILD_DIR}
@@ -62,9 +61,6 @@ build_target: clean_target build_pulp
 	@${VIVADO} ${VIVADO_OPT} \
 		-source ${UTILS_HERO}/hero_exilzcu102.tcl \
 		-tclargs $(BUILD_DIR)/$(BUILD_TARGET)/vivado_prj $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips
-
-# tmp_build_pulp: 
-# 	@cd $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips && ${VIVADO} ${VIVADO_OPT} -source pulp_txilzu9eg.tcl
 
 build_pulp: clean_pulp_fpga build_env
 	@cd $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips && ${VIVADO} ${VIVADO_OPT} -source pulp_txilzu9eg.tcl
