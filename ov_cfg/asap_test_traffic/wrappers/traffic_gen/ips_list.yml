@@ -1,0 +1,5 @@
+hwpe-ctrl:
+  commit: 67b6ceb1fbe7e3539ca938c17c07f730a88d96d9
+hwpe-stream:
+  commit: 772da7969f31c435993273e1a6b49402dc35e3d8
+

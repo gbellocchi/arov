@@ -1,0 +1,2 @@
+/usr/bin/ar qc libLibsModule.a  CMakeFiles/LibsModule.dir/src/gen_stim.c.o CMakeFiles/LibsModule.dir/src/ref_app.c.o CMakeFiles/LibsModule.dir/src/gen_Hfile.c.o
+/usr/bin/ranlib libLibsModule.a

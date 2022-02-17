@@ -1,0 +1,30 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/scratch2/gbellocchi/ethz/arov/ov_cfg/asap_test_traffic/test/sw/inc/stim/hwpe_cl0_lic3/ref_sw/src/main.c
+ref_app.h
+/scratch2/gbellocchi/ethz/arov/ov_cfg/asap_test_traffic/test/sw/inc/stim/hwpe_cl0_lic3/ref_sw/src/ref_app.h
+
+/scratch2/gbellocchi/ethz/arov/ov_cfg/asap_test_traffic/test/sw/inc/stim/hwpe_cl0_lic3/ref_sw/src/ref_app.h
+stdlib.h
+-
+stdio.h
+-
+stdint.h
+-
+unistd.h
+-
+string.h
+-
+math.h
+-
+time.h
+-
+errno.h
+-
+
