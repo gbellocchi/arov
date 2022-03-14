@@ -90,7 +90,7 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
   parameter int NB_SPERIPHS                     = 8, // CHANGE
   parameter int LOG_CLUSTER                     = 5,  // unused
   parameter int PE_ROUTING_LSB                  = 10, // LSB used as routing BIT in periph interco
-  parameter int PE_ROUTING_MSB                  = 13, // MSB used as routing BIT in periph interco
+  parameter int PE_ROUTING_MSB                  = 14, // MSB used as routing BIT in periph interco
   parameter int EVNT_WIDTH                      = 8,  // size of the event bus
   parameter int REMAP_ADDRESS                   = 0   // for cluster virtualization
 )

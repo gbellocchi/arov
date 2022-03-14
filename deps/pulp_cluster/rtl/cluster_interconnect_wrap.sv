@@ -352,28 +352,42 @@ module cluster_interconnect_wrap
   logic     [PE_XBAR_N_INPS-1:0]  pe_inp_req,
                                   pe_inp_gnt,
                                   pe_inp_rvalid;
-  localparam pe_idx_t PE_IDX_EXT = pulp_cluster_package::SPER_EXT_ID;
-  function automatic pe_idx_t addr_to_pe_idx(input pe_addr_t addr, input logic [31:0] addrext);
-    if (ADDREXT && addrext != '0) begin
-      return PE_IDX_EXT;
-    end else begin
-      if (
-        // if the access is to this cluster ..
-        (addr[31:24] == 8'h10 || (CLUSTER_ALIAS && addr[31:24] == CLUSTER_ALIAS_BASE[11:4]))
-        // .. and the peripherals
-        && (addr[23:20] >= 4'h2 && addr[23:20] <= 4'h3)
-      ) begin
-        // decode peripheral to access
-        return addr[PE_ROUTING_MSB:PE_ROUTING_LSB];
-      end else begin
-        // otherwise decode to 'external' peripheral
-        return PE_IDX_EXT;
-      end
-    end
-  endfunction
+  // localparam pe_idx_t PE_IDX_EXT = pulp_cluster_package::SPER_EXT_ID;
+  // function automatic pe_idx_t addr_to_pe_idx(input pe_addr_t addr, input logic [31:0] addrext);
+  //   if (ADDREXT && addrext != '0) begin
+  //     return PE_IDX_EXT;
+  //   end else begin
+  //     if (
+  //       // if the access is to this cluster ..
+  //       (addr[31:24] == 8'h10 || (CLUSTER_ALIAS && addr[31:24] == CLUSTER_ALIAS_BASE[11:4]))
+  //       // .. and the peripherals
+  //       && (addr[23:20] >= 4'h2 && addr[23:20] <= 4'h3)
+  //     ) begin
+  //       // decode peripheral to access
+  //       return addr[PE_ROUTING_MSB:PE_ROUTING_LSB];
+  //     end else begin
+  //       // otherwise decode to 'external' peripheral
+  //       return PE_IDX_EXT;
+  //     end
+  //   end
+  // endfunction
   for (genvar i = 0; i < NB_CORES; i++) begin : gen_pe_xbar_bind_cores
     assign pe_inp_req[i] = core_periph_slave[i].req;
-    assign pe_inp_idx[i] = addr_to_pe_idx(core_periph_slave[i].add, core_periph_slave_addrext[i]);
+
+    // assign pe_inp_idx[i] = addr_to_pe_idx(core_periph_slave[i].add, core_periph_slave_addrext[i]);
+    addr_to_pe_idx #(
+      .ADDREXT              (ADDREXT), 
+      .CLUSTER_ALIAS        (CLUSTER_ALIAS), 
+      .CLUSTER_ALIAS_BASE   (CLUSTER_ALIAS_BASE), 
+      .PE_ROUTING_LSB       (PE_ROUTING_LSB), 
+      .PE_ROUTING_MSB       (PE_ROUTING_MSB), 
+      .PE_XBAR_N_OUPS       (PE_XBAR_N_OUPS)
+    ) addr_to_pe_idx_i (
+      core_periph_slave[i].add, 
+      core_periph_slave_addrext[i], 
+      pe_inp_idx[i]
+    );
+    
     assign pe_inp_wdata[i].addr = core_periph_slave[i].add;
     assign pe_inp_wdata[i].data = core_periph_slave[i].wdata;
     assign pe_inp_wdata[i].id   = 1 << i;
@@ -388,7 +402,22 @@ module cluster_interconnect_wrap
   end
   for (genvar i = 0; i < NB_MPERIPHS; i++) begin : gen_pe_xbar_bind_mperiphs
     assign pe_inp_req[i+NB_CORES] = mperiph_slave[i].req;
-    assign pe_inp_idx[i+NB_CORES] = addr_to_pe_idx(mperiph_slave[i].add, '0);
+
+    // assign pe_inp_idx[i+NB_CORES] = addr_to_pe_idx(mperiph_slave[i].add, '0);
+    
+    addr_to_pe_idx #(
+      .ADDREXT              (ADDREXT), 
+      .CLUSTER_ALIAS        (CLUSTER_ALIAS), 
+      .CLUSTER_ALIAS_BASE   (CLUSTER_ALIAS_BASE), 
+      .PE_ROUTING_LSB       (PE_ROUTING_LSB), 
+      .PE_ROUTING_MSB       (PE_ROUTING_MSB), 
+      .PE_XBAR_N_OUPS       (PE_XBAR_N_OUPS)
+    ) addr_to_pe_idx_i (
+      core_periph_slave[i].add, 
+      '0, 
+      pe_inp_idx[i+NB_CORES]
+    );
+
     assign pe_inp_wdata[i+NB_CORES].addr  = mperiph_slave[i].add;
     assign pe_inp_wdata[i+NB_CORES].data  = mperiph_slave[i].wdata;
     assign pe_inp_wdata[i+NB_CORES].id    = 1 << (i + NB_CORES);
