@@ -6,7 +6,7 @@
 # $Date:        15.09.2021
 # =====================================================================
 #
-# Copyright (C) 2022 University of Modena and Reggio Emilia..
+# Copyright (C) 2022 University of Modena and Reggio Emilia.
 #
 # Author: Gianluca Bellocchi, University of Modena and Reggio Emilia.
 #
@@ -34,54 +34,72 @@ set ::prj_dir "$build_dir/$design_name/vivado_prj"
 # Reports directory
 set ::reports_dir "$build_dir/$design_name/reports"
 
-# ================== #
-# Open target design #
-# ================== #
-
 file mkdir $reports_dir
+
+# =================== #
+# Open target project #
+# =================== #
 
 # open project
 open_project ${prj_dir}/hero_exilzcu102.xpr
 update_compile_order -fileset sources_1
 
-# open implemented design
-open_run impl_1
+# ================================================= #
+# Create utilization reports for synthesized design #
+# ================================================= #
 
-# ================== #
-# Utilization report #
-# ================== #
+# Design run type
+set ::design_run_type "synth"
+set ::design_run_name "synth_1"
 
-source $reports_util/get_util_csv.tcl
+# Design run state
+set ::design_run_status [get_property STATUS [get_runs $design_run_name]]
+set ::design_run_progress [get_property PROGRESS [get_runs $design_run_name]]
 
-# # =============== #
-# # Timing reports  #
-# # =============== #
+# Open runlist 
+set runlist [get_runs $design_run_type*]
 
-# # report - timing check 
-# check_timing \
-#     -file ${prj_dir}/$design_name\_report_timing_check.rpt 
+# Check if run exist
+if {[regexp -- $design_run_name $runlist]} {
 
-# # report - summary
-# report_timing_summary \
-#     -delay_type min_max \
-#     -report_unconstrained \
-#     -check_timing_verbose \
-#     -max_paths 10 \
-#     -input_pins \
-#     -routable_nets \
-#     -file ${reports_dir}/$design_name\_report_timing_summary.rpt 
+    # Check if run has completed
+    if { [regexp -- Complete $design_run_status] && [regexp -- 100% $design_run_progress]} {
 
-# # # report - worst timing path
-# # report_timing \
-# #     -nworst 1 \
-# #     -delay_type max \
-# #     -sort_by group \                 
-# #     -file ${reports_dir}/$design_name\_report_timing_worst.rpt
+        # Open design run
+        open_run $design_run_name
 
-# # # report - 100 worst paths
-# # report_timing \
-# #     -max_paths 100 \
-# #     -nworst 100 \
-# #     -delay_type max \
-# #     -sort_by slack \
-# #     -file ${reports_dir}/$design_name\_report_timing_worst_100.rpt
+        # Export report into CSV
+        source $reports_util/get_util_csv.tcl
+
+    }
+}
+
+# ================================================= #
+# Create utilization reports for implemented design #
+# ================================================= #
+
+# Design run type
+set ::design_run_type "impl"
+set ::design_run_name "impl_1"
+
+# Design run state
+set ::design_run_status [get_property STATUS [get_runs $design_run_name]]
+set ::design_run_progress [get_property PROGRESS [get_runs $design_run_name]]
+
+# Open runlist 
+set runlist [get_runs $design_run_type*]
+
+# Check if run exist
+if {[regexp -- $design_run_name $runlist]} {
+
+    # Check if run has completed
+    if { [regexp -- Complete $design_run_status] && [regexp -- 100% $design_run_progress]} {
+
+        # Open design run
+        open_run $design_run_name
+
+        # Export report into CSV
+        source $reports_util/get_util_csv.tcl
+
+    }
+}
