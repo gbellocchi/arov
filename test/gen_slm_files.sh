@@ -15,9 +15,10 @@ readonly test_path="$( cd "$(dirname "$0")" ; pwd -P )"
 
 # read arguments from makefile
 readonly app_path="$1"
+readonly dir_slm_files="$2"
 
 # useful variables
-readonly dir_slm_files="$test_path/slm_files"
+# readonly dir_slm_files="$test_path/slm_files"
 readonly app_name=$(basename $app_path)
 
 # get slm_conv bin
@@ -44,7 +45,7 @@ cd $dir_slm_files
 # partition L1 binaries for RTL simulation
 if [ -f "$app_path/${app_name}_l1.slm" ]; then
     $slm_conv --swap-endianness -f "$app_path/${app_name}_l1.slm" \
-    -w 32 -P 64 -S 1 -n 1024 -s 0x10000000 -F l1_%01S_%01P.slm
+    -w 32 -P 32 -S 1 -n 2048 -s 0x10000000 -F l1_%01S_%01P.slm
 else
     error_exit "Missing L1 binaries at $app_path/. Aborting."
 fi

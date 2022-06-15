@@ -72,6 +72,7 @@ module hwpe_ctrl_regfile
   logic [3:0]                       regfile_latch_be;
   logic [N_SCM_REGISTERS-1:0][31:0] regfile_latch_mem;
 
+  logic r_finished_polling;
   logic [1:0] r_finished_cnt;
   logic r_was_testset;
   logic r_was_mandatory;
@@ -333,7 +334,7 @@ module hwpe_ctrl_regfile
   end
 
   assign regfile_mem_mandatory[REGFILE_MANDATORY_SOFTCLEAR] = '0;
-  assign regfile_mem_mandatory[REGFILE_MANDATORY_FINISHED] = r_finished_cnt;
+  assign regfile_mem_mandatory[REGFILE_MANDATORY_FINISHED] = r_finished_polling;
   // Extension
   assign regfile_mem_mandatory[REGFILE_MANDATORY_RESERVED] = regfile_in_i.wdata;
 
@@ -448,6 +449,26 @@ module hwpe_ctrl_regfile
         r_finished_cnt <= '0;
       else if ((flags_i.true_done == 1'b1) && (r_finished_cnt < 2))
         r_finished_cnt <= r_finished_cnt + 1;
+    end
+  end
+
+  // finished polling register
+  // added in 5.4.22
+  always_ff @(posedge clk_i or negedge rst_ni)
+  begin : finished_polling
+    if(~rst_ni) begin
+      r_finished_polling <= '0;
+    end
+    else if(clear_i==1'b1) begin
+      r_finished_polling <= '0;
+    end
+    else begin
+      if (flags_i.true_done == 1'b1) begin
+        r_finished_polling <= '1;
+      end
+      else if ((flags_i.is_mandatory == 1'b1) && (regfile_in_i.addr[LOG_REGS-1:0] == 2)) begin
+        r_finished_polling <= '0; 
+      end
     end
   end
 

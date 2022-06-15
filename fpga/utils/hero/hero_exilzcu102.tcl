@@ -22,7 +22,7 @@ set_property -dict [list \
   CONFIG.PSU__USE__S_AXI_GP2 {0} \
   CONFIG.PSU__USE__S_AXI_GP3 {1} \
   CONFIG.PSU__USE__IRQ1 {1} \
-  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ {50} \
+  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ {10} \
 ] [get_bd_cells i_zynq_ps]
 connect_bd_net [get_bd_pins i_zynq_ps/pl_clk0] \
   [get_bd_pins i_zynq_ps/saxihp1_fpd_aclk]
@@ -35,7 +35,6 @@ connect_bd_net [get_bd_pins i_zynq_ps/pl_resetn0] \
   [get_bd_pins i_sys_reset/ext_reset_in]
 connect_bd_net [get_bd_pins i_zynq_ps/pl_clk0] \
   [get_bd_pins i_sys_reset/slowest_sync_clk]
-
 # Interconnect from Zynq PS
 create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 i_iconn_ps
 set_property -dict [list CONFIG.NUM_MI {4}] [get_bd_cells i_iconn_ps]

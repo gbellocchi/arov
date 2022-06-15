@@ -454,8 +454,11 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
   XBAR_PERIPH_BUS s_xbar_speriph_bus[NB_SPERIPHS-1:0]();
   logic [NB_SPERIPHS-1:0][5:0] s_xbar_speriph_atop;
 
-  // periph interconnect -> XNE
+  // periph interconnect -> HWPE
   XBAR_PERIPH_BUS s_hwpe_cfg_slave[NB_HWPE_TOTAL-1:0]();
+
+  // periph interconnect -> EU_HWPE
+  XBAR_PERIPH_BUS s_eu_hwpe_cfg_slave();
 
   // DMA -> log interconnect
   XBAR_TCDM_BUS s_dma_xbar_bus[NB_DMAS-1:0]();
@@ -835,6 +838,7 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
     .hwacc_events_i         ( s_hwacc_events                     ),
     .hwpe_sel_o             ( hwpe_sel                           ),
     .hwpe_en_o              ( hwpe_en                            ),
+    .eu_hwpe_cfg_master     ( s_eu_hwpe_cfg_slave                ),  
     .IC_ctrl_unit_bus       (  IC_ctrl_unit_bus                  )
   );
 
@@ -928,13 +932,15 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
         .NB_CORES                 ( NB_CORES                ),
         .NB_HWPE                  ( NB_HWPE_LIC             ),
         .NB_HWPE_LIC_PORTS_TOTAL  ( NB_HWPE_LIC_PORTS_TOTAL ),
-        .ID_WIDTH                 ( NB_CORES+NB_MPERIPHS    )
+        .ID_WIDTH                 ( NB_CORES+NB_MPERIPHS    ),
+        .EU_HWPE_PRESENT          ( 0 /* TODO */            )
       ) lic_acc_region_i (
         .clk               ( clk_cluster                                                    ),
         .rst_n             ( s_rst_n                                                        ),
         .test_mode         ( test_mode_i                                                    ),
         .hwpe_xbar_master  ( s_core_xbar_bus[NB_CORES+NB_HWPE_LIC_PORTS_TOTAL-1:NB_CORES]   ),
         .hwpe_cfg_slave    ( s_hwpe_cfg_slave                                               ),
+        .eu_hwpe_cfg_slave ( s_eu_hwpe_cfg_slave                                            ),
         .evt_o             ( s_lic_acc_evt                                                  ),
         .busy_o            ( s_lic_acc_busy                                                 )
       );

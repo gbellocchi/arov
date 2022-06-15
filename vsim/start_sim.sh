@@ -20,8 +20,8 @@ error_exit()
   exit 1
 }
 
-readonly vsim_gui="$1"
-readonly target_ov="$2"
+readonly target_ov="$1"
+readonly vsim_gui="$2"
 
 # UNIMORE setup
 if [ $UNIMORE -eq 1 ]; then
