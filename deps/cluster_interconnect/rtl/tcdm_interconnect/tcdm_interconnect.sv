@@ -315,8 +315,8 @@ end
 initial begin
 	assert(AddrMemWidth+NumOutLog2 <= AddrWidth) else
     $fatal(1,"Address not wide enough to accomodate the requested TCDM configuration.");
-  assert(NumOut >= NumIn) else
-    $fatal(1,"NumOut < NumIn is not supported.");
+  // assert(NumOut >= NumIn) else
+  //   $fatal(1,"NumOut < NumIn is not supported.");
 end
 // pragma translate_on
 

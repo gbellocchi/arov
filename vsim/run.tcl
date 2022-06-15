@@ -29,9 +29,9 @@ set BreakOnAssertion 2;# break also on assertion errors
 if { ! [batch_mode] } {
     set directory "$src_path/$target_ov/test/waves"
     set files [glob [file join $directory *.wave.do]]
-    echo "There are [llength $files] wave files in $directory:"
     foreach f $files {
         source $f
+        echo "\t- $f"
     }
 }
 
