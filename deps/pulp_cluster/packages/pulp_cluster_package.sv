@@ -22,7 +22,7 @@ package pulp_cluster_package;
   parameter SPER_EOC_ID      = 0; // 0x400
   parameter SPER_TIMER_ID    = 1; // 0x400
   parameter SPER_EVENT_U_ID  = 2; // 0x400? 0x800?
-  parameter SPER_EU_HWPE_ID  = 4; // 0x400
+  parameter SPER_EU_HWPE_ID  = 4; // 0x400 -> Disactivated at the moment!
   parameter SPER_ICACHE_CTRL = 5; // 0x400
   parameter SPER_DMA_ID      = 6; // 0x400
   parameter SPER_EXT_ID      = 7; // 0x400
