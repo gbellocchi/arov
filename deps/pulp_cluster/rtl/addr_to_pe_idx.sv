@@ -35,7 +35,8 @@ module addr_to_pe_idx #(
 
     // localparam PE_EU_HWPE_PORT = pulp_cluster_package::SPER_EU_HWPE_ID;
     // localparam PE_HWPE_REF_0_PORT = pulp_cluster_package::SPER_HWPE_ID;
-    localparam PE_HWPE_REF_0_PORT = pulp_cluster_package::SPER_EXT_ID + 1;
+    localparam PE_HWPE_REF_0_PORT = pulp_cluster_package::SPER_EXT_ID + 1; 
+            /* HWPE accelerators are mapped starting from ID=8 (with address space dimension = 0x200) */
 
     // Signals to calculate peripheral index
     logic [$clog2(PE_XBAR_N_OUPS)-1:0] r_addr;
