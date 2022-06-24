@@ -3,4 +3,4 @@
 	url = git@iis-git.ee.ethz.ch:gianluca.bellocchi/genov.git
 [submodule "archex"]
 	path = archex
-	url = https://github.com/gbellocchi/ArchEx.git
+	url = git@github.com:gbellocchi/ArchEx.git
