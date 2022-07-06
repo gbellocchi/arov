@@ -87,7 +87,7 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
 
   // peripheral and periph interconnect parameters
   parameter int NB_MPERIPHS                     = 1,
-  parameter int NB_SPERIPHS                     = 8, // CHANGE
+  parameter int NB_SPERIPHS                     = 8, 
   parameter int LOG_CLUSTER                     = 5,  // unused
   parameter int PE_ROUTING_LSB                  = 10, // LSB used as routing BIT in periph interco
   parameter int PE_ROUTING_MSB                  = 13, // MSB used as routing BIT in periph interco
@@ -457,8 +457,8 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
   // periph interconnect -> HWPE
   XBAR_PERIPH_BUS s_hwpe_cfg_slave[NB_HWPE_TOTAL-1:0]();
 
-  // periph interconnect -> EU_HWPE
-  XBAR_PERIPH_BUS s_eu_hwpe_cfg_slave();
+  // // periph interconnect -> EU_HWPE
+  // XBAR_PERIPH_BUS s_eu_hwpe_cfg_slave();
 
   // DMA -> log interconnect
   XBAR_TCDM_BUS s_dma_xbar_bus[NB_DMAS-1:0]();
@@ -815,7 +815,7 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
     .core_busy_i            ( core_busy                          ),
     .core_clk_en_o          ( clk_core_en                        ),
     .fregfile_disable_o     ( s_fregfile_disable                 ),
-    .speriph_slave          ( s_xbar_speriph_bus[NB_SPERIPHS-1:0]),
+    .speriph_slave          ( s_xbar_speriph_bus[NB_SPERIPHS-2:0]),
     .core_eu_direct_link    ( s_core_euctrl_bus                  ),
     .dma_cfg_master         ( s_periph_dma_bus                   ),
     .dma_pe_irq_i           ( s_dma_pe_irq                       ),
@@ -838,7 +838,6 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
     .hwacc_events_i         ( s_hwacc_events                     ),
     .hwpe_sel_o             ( hwpe_sel                           ),
     .hwpe_en_o              ( hwpe_en                            ),
-    .eu_hwpe_cfg_master     ( s_eu_hwpe_cfg_slave                ),  
     .IC_ctrl_unit_bus       (  IC_ctrl_unit_bus                  )
   );
 
@@ -932,15 +931,13 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
         .NB_CORES                 ( NB_CORES                ),
         .NB_HWPE                  ( NB_HWPE_LIC             ),
         .NB_HWPE_LIC_PORTS_TOTAL  ( NB_HWPE_LIC_PORTS_TOTAL ),
-        .ID_WIDTH                 ( NB_CORES+NB_MPERIPHS    ),
-        .EU_HWPE_PRESENT          ( 0 /* TODO */            )
+        .ID_WIDTH                 ( NB_CORES+NB_MPERIPHS    )
       ) lic_acc_region_i (
         .clk               ( clk_cluster                                                    ),
         .rst_n             ( s_rst_n                                                        ),
         .test_mode         ( test_mode_i                                                    ),
         .hwpe_xbar_master  ( s_core_xbar_bus[NB_CORES+NB_HWPE_LIC_PORTS_TOTAL-1:NB_CORES]   ),
         .hwpe_cfg_slave    ( s_hwpe_cfg_slave                                               ),
-        .eu_hwpe_cfg_slave ( s_eu_hwpe_cfg_slave                                            ),
         .evt_o             ( s_lic_acc_evt                                                  ),
         .busy_o            ( s_lic_acc_busy                                                 )
       );
@@ -962,17 +959,6 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
         assign s_core_xbar_bus[i].be  = '0;
         assign s_core_xbar_bus[i].wdata = '0;
       end
-
-      // assign s_hwpe_cfg_slave[0].r_valid = '1;
-      // assign s_hwpe_cfg_slave[0].gnt = '1;
-      // assign s_hwpe_cfg_slave[0].r_rdata = 32'hdeadbeef;
-      // assign s_hwpe_cfg_slave[0].r_id = '0;
-      // for (genvar i=NB_CORES; i<NB_CORES+NB_HWPE_LIC_PORTS_TOTAL ; i++) begin : no_lic_acc_bias
-      //   assign s_core_xbar_bus[i].req = '0;
-      //   assign s_core_xbar_bus[i].wen = '0;
-      //   assign s_core_xbar_bus[i].be  = '0;
-      //   assign s_core_xbar_bus[i].wdata = '0;
-      // end
 
       assign s_lic_acc_busy = '0;
       assign s_lic_acc_evt = '0;
