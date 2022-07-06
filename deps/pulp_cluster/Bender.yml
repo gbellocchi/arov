@@ -16,7 +16,6 @@ dependencies:
   per2axi: { git: "https://github.com/pulp-platform/per2axi.git", rev: atomics }
   riscv: { git: "https://github.com/pulp-platform/riscv.git", rev: atomics }
   timer_unit: { git: "https://github.com/pulp-platform/timer_unit.git", version: 1.0.0 }
-  eu_hwpe: { git: "https://github.com/gbellocchi/eu_hwpe.git", rev: main }
 
 sources:
   # Level 0
