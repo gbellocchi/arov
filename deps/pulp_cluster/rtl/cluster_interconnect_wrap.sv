@@ -404,7 +404,6 @@ module cluster_interconnect_wrap
     assign pe_inp_req[i+NB_CORES] = mperiph_slave[i].req;
 
     // assign pe_inp_idx[i+NB_CORES] = addr_to_pe_idx(mperiph_slave[i].add, '0);
-    
     addr_to_pe_idx #(
       .ADDREXT              (ADDREXT), 
       .CLUSTER_ALIAS        (CLUSTER_ALIAS), 

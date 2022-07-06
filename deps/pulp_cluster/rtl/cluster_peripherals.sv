@@ -50,7 +50,7 @@ module cluster_peripherals import pulp_cluster_package::*;
   
   output logic                        busy_o,
   
-  XBAR_PERIPH_BUS.Slave               speriph_slave[NB_SPERIPHS-1:0],
+  XBAR_PERIPH_BUS.Slave               speriph_slave[NB_SPERIPHS-2:0],
   XBAR_PERIPH_BUS.Slave               core_eu_direct_link[NB_CORES-1:0],
   
   XBAR_PERIPH_BUS.Master              dma_cfg_master,
@@ -79,8 +79,6 @@ module cluster_peripherals import pulp_cluster_package::*;
   input logic [NB_CORES-1:0][3:0]     hwacc_events_i,
   output logic                        hwpe_sel_o,
   output logic                        hwpe_en_o,
-
-  XBAR_PERIPH_BUS.Master              eu_hwpe_cfg_master,
 
   // Control ports
   MP_PF_ICACHE_CTRL_UNIT_BUS.Master      IC_ctrl_unit_bus
@@ -257,25 +255,11 @@ module cluster_peripherals import pulp_cluster_package::*;
   assign dma_cfg_master.wdata = speriph_slave[SPER_DMA_ID].wdata;
   assign dma_cfg_master.be    = speriph_slave[SPER_DMA_ID].be;
   assign dma_cfg_master.id    = speriph_slave[SPER_DMA_ID].id;
-    
-  // accelerator binding
-  // assign speriph_slave[SPER_HWPE_ID].gnt     = hwce_cfg_master.gnt;
-  // assign speriph_slave[SPER_HWPE_ID].r_rdata = hwce_cfg_master.r_rdata;
-  // assign speriph_slave[SPER_HWPE_ID].r_opc   = hwce_cfg_master.r_opc;
-  // assign speriph_slave[SPER_HWPE_ID].r_id    = hwce_cfg_master.r_id;
-  // assign speriph_slave[SPER_HWPE_ID].r_valid = hwce_cfg_master.r_valid;
-  
-  // assign hwce_cfg_master.req   = speriph_slave[SPER_HWPE_ID].req;
-  // assign hwce_cfg_master.add   = speriph_slave[SPER_HWPE_ID].add;
-  // assign hwce_cfg_master.wen   = speriph_slave[SPER_HWPE_ID].wen;
-  // assign hwce_cfg_master.wdata = speriph_slave[SPER_HWPE_ID].wdata;
-  // assign hwce_cfg_master.be    = speriph_slave[SPER_HWPE_ID].be;
-  // assign hwce_cfg_master.id    = speriph_slave[SPER_HWPE_ID].id;
 
   // peripheral accelerator interface
   periph_acc_intf #(
-    .NB_HWPE        ( NB_HWPE        ),
-    .NB_SPERIPHS    ( NB_SPERIPHS    )
+    .NB_HWPE                ( NB_HWPE                       ),
+    .NB_SPERIPHS            ( NB_SPERIPHS                   )
   ) periph_acc_intf_i (
     .clk                    ( clk_i                         ),
     .rst_n                  ( rst_ni                        ),
@@ -283,20 +267,5 @@ module cluster_peripherals import pulp_cluster_package::*;
     .speriph_slave          ( speriph_slave                 ),
     .hwpe_cfg_master        ( hwce_cfg_master               )
   );
-
-  // EU HWPE binding
-  assign speriph_slave[SPER_EU_HWPE_ID].gnt     = eu_hwpe_cfg_master.gnt;
-  assign speriph_slave[SPER_EU_HWPE_ID].r_rdata = eu_hwpe_cfg_master.r_rdata;
-  assign speriph_slave[SPER_EU_HWPE_ID].r_opc   = eu_hwpe_cfg_master.r_opc;
-  assign speriph_slave[SPER_EU_HWPE_ID].r_id    = eu_hwpe_cfg_master.r_id;
-  assign speriph_slave[SPER_EU_HWPE_ID].r_valid = eu_hwpe_cfg_master.r_valid;
-  
-  assign eu_hwpe_cfg_master.req   = speriph_slave[SPER_EU_HWPE_ID].req;
-  assign eu_hwpe_cfg_master.add   = speriph_slave[SPER_EU_HWPE_ID].add;
-  assign eu_hwpe_cfg_master.wen   = speriph_slave[SPER_EU_HWPE_ID].wen;
-  assign eu_hwpe_cfg_master.wdata = speriph_slave[SPER_EU_HWPE_ID].wdata;
-  assign eu_hwpe_cfg_master.be    = speriph_slave[SPER_EU_HWPE_ID].be;
-  assign eu_hwpe_cfg_master.id    = speriph_slave[SPER_EU_HWPE_ID].id;
-
 
 endmodule // cluster_peripherals
