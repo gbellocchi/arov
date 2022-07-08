@@ -88,6 +88,7 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
   // peripheral and periph interconnect parameters
   parameter int NB_MPERIPHS                     = 1,
   parameter int NB_SPERIPHS                     = 8, 
+  parameter int NB_SPERIPHS_HWPE                = NB_HWPE_LIC + NB_HWPE_HCI, 
   parameter int LOG_CLUSTER                     = 5,  // unused
   parameter int PE_ROUTING_LSB                  = 10, // LSB used as routing BIT in periph interco
   parameter int PE_ROUTING_MSB                  = 13, // MSB used as routing BIT in periph interco
@@ -457,9 +458,6 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
   // periph interconnect -> HWPE
   XBAR_PERIPH_BUS s_hwpe_cfg_slave[NB_HWPE_TOTAL-1:0]();
 
-  // // periph interconnect -> EU_HWPE
-  // XBAR_PERIPH_BUS s_eu_hwpe_cfg_slave();
-
   // DMA -> log interconnect
   XBAR_TCDM_BUS s_dma_xbar_bus[NB_DMAS-1:0]();
 
@@ -791,56 +789,57 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
   );
 
   cluster_peripherals #(
-    .NB_CORES       ( NB_CORES       ),
-    .NB_HWPE        ( NB_HWPE_TOTAL  ),
-    .NB_MPERIPHS    ( NB_MPERIPHS    ),
-    .NB_CACHE_BANKS ( NB_CACHE_BANKS ),
-    .NB_SPERIPHS    ( NB_SPERIPHS    ),
-    .NB_TCDM_BANKS  ( NB_TCDM_BANKS  ),
-    .NB_HWPE_PORTS  ( 1              ),
-    .ROM_BOOT_ADDR  ( ROM_BOOT_ADDR  ),
-    .BOOT_ADDR      ( BOOT_ADDR      ),
-    .EVNT_WIDTH     ( EVNT_WIDTH     )
+    .NB_CORES         ( NB_CORES            ),
+    .NB_HWPE          ( NB_HWPE_TOTAL       ),
+    .NB_MPERIPHS      ( NB_MPERIPHS         ),
+    .NB_CACHE_BANKS   ( NB_CACHE_BANKS      ),
+    .NB_SPERIPHS      ( NB_SPERIPHS         ),
+    .NB_SPERIPHS_HWPE ( NB_SPERIPHS_HWPE    ),
+    .NB_TCDM_BANKS    ( NB_TCDM_BANKS       ),
+    .ROM_BOOT_ADDR    ( ROM_BOOT_ADDR       ),
+    .BOOT_ADDR        ( BOOT_ADDR           ),
+    .EVNT_WIDTH       ( EVNT_WIDTH          )
   ) cluster_peripherals_i (
-    .clk_i                  ( clk_cluster                        ),
-    .rst_ni                 ( rst_ni                             ),
-    .ref_clk_i              ( ref_clk_i                          ),
-    .test_mode_i            ( test_mode_i                        ),
-    .busy_o                 ( s_cluster_periphs_busy             ),
-    .dma_events_i           ( s_dma_event                        ),
-    .dma_irq_i              ( s_dma_irq                          ),
-    .en_sa_boot_i           ( en_sa_boot_i                       ),
-    .fetch_en_i             ( fetch_en_i                         ),
-    .boot_addr_o            ( boot_addr                          ),
-    .core_busy_i            ( core_busy                          ),
-    .core_clk_en_o          ( clk_core_en                        ),
-    .fregfile_disable_o     ( s_fregfile_disable                 ),
-    .speriph_slave          ( s_xbar_speriph_bus[NB_SPERIPHS-2:0]),
-    .core_eu_direct_link    ( s_core_euctrl_bus                  ),
-    .dma_cfg_master         ( s_periph_dma_bus                   ),
-    .dma_pe_irq_i           ( s_dma_pe_irq                       ),
-    .pf_event_o             ( s_pf_event                         ),
-    .soc_periph_evt_ready_o ( s_events_ready                     ),
-    .soc_periph_evt_valid_i ( s_events_valid                     ),
-    .soc_periph_evt_data_i  ( s_events_data                      ),
-    .dbg_core_halt_o        ( dbg_core_halt                      ),
-    .dbg_core_halted_i      ( dbg_core_halted                    ),
-    .dbg_core_resume_o      ( dbg_core_resume                    ),
-    .eoc_o                  ( eoc_o                              ),
-    .cluster_cg_en_o        ( s_cluster_cg_en                    ),
-    .fetch_enable_reg_o     ( fetch_enable_reg_int               ),
-    .irq_id_o               ( irq_id                             ),
-    .irq_ack_id_i           ( irq_ack_id                         ),
-    .irq_req_o              ( irq_req                            ),
-    .irq_ack_i              ( irq_ack                            ),
-    .TCDM_arb_policy_o      ( s_TCDM_arb_policy                  ),
-    .hwce_cfg_master        ( s_hwpe_cfg_slave                   ),
-    .hwacc_events_i         ( s_hwacc_events                     ),
-    .hwpe_sel_o             ( hwpe_sel                           ),
-    .hwpe_en_o              ( hwpe_en                            ),
-    .IC_ctrl_unit_bus       (  IC_ctrl_unit_bus                  )
+    .clk_i                  ( clk_cluster                                                     ),
+    .rst_ni                 ( rst_ni                                                          ),
+    .ref_clk_i              ( ref_clk_i                                                       ),
+    .test_mode_i            ( test_mode_i                                                     ),
+    .busy_o                 ( s_cluster_periphs_busy                                          ),
+    .dma_events_i           ( s_dma_event                                                     ),
+    .dma_irq_i              ( s_dma_irq                                                       ),
+    .en_sa_boot_i           ( en_sa_boot_i                                                    ),
+    .fetch_en_i             ( fetch_en_i                                                      ),
+    .boot_addr_o            ( boot_addr                                                       ),
+    .core_busy_i            ( core_busy                                                       ),
+    .core_clk_en_o          ( clk_core_en                                                     ),
+    .fregfile_disable_o     ( s_fregfile_disable                                              ),
+    .speriph_slave          ( s_xbar_speriph_bus[NB_SPERIPHS-NB_SPERIPHS_HWPE-2:0]            ),
+    .speriph_hwpe_slave     ( s_xbar_speriph_bus[NB_SPERIPHS-1:NB_SPERIPHS-NB_SPERIPHS_HWPE]  ),
+    .core_eu_direct_link    ( s_core_euctrl_bus                                               ),
+    .dma_cfg_master         ( s_periph_dma_bus                                                ),
+    .dma_pe_irq_i           ( s_dma_pe_irq                                                    ),
+    .pf_event_o             ( s_pf_event                                                      ),
+    .soc_periph_evt_ready_o ( s_events_ready                                                  ),
+    .soc_periph_evt_valid_i ( s_events_valid                                                  ),
+    .soc_periph_evt_data_i  ( s_events_data                                                   ),
+    .dbg_core_halt_o        ( dbg_core_halt                                                   ),
+    .dbg_core_halted_i      ( dbg_core_halted                                                 ),
+    .dbg_core_resume_o      ( dbg_core_resume                                                 ),
+    .eoc_o                  ( eoc_o                                                           ),
+    .cluster_cg_en_o        ( s_cluster_cg_en                                                 ),
+    .fetch_enable_reg_o     ( fetch_enable_reg_int                                            ),
+    .irq_id_o               ( irq_id                                                          ),
+    .irq_ack_id_i           ( irq_ack_id                                                      ),
+    .irq_req_o              ( irq_req                                                         ),
+    .irq_ack_i              ( irq_ack                                                         ),
+    .TCDM_arb_policy_o      ( s_TCDM_arb_policy                                               ),
+    .hwce_cfg_master        ( s_hwpe_cfg_slave                                                ),
+    .hwacc_events_i         ( s_hwacc_events                                                  ),
+    .hwpe_sel_o             ( hwpe_sel                                                        ),
+    .hwpe_en_o              ( hwpe_en                                                         ),
+    .IC_ctrl_unit_bus       (  IC_ctrl_unit_bus                                               )
   );
-
+  
   /* cluster cores + core-coupled accelerators / shared execution units */
   generate
     for (genvar i=0; i<NB_CORES; i++) begin : CORE
@@ -941,7 +940,6 @@ module pulp_cluster import pulp_cluster_package::*; import apu_package::*; impor
         .evt_o             ( s_lic_acc_evt                                                  ),
         .busy_o            ( s_lic_acc_busy                                                 )
       );
-
 
     end
     else begin : no_lic_acc_region_gen
