@@ -22,7 +22,7 @@ package pulp_cluster_package;
   parameter SPER_EOC_ID      = 0;
   parameter SPER_TIMER_ID    = 1;
   parameter SPER_EVENT_U_ID  = 2;
-  parameter SPER_HWPE_ID     = 4;
+  parameter SPER_UNUSED_ID   = 4; // unused!
   parameter SPER_ICACHE_CTRL = 5;
   parameter SPER_DMA_ID      = 6;
   parameter SPER_EXT_ID      = 7;
