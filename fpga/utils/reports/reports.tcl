@@ -22,11 +22,14 @@
 # Design name
 set ::design_name [lindex $argv 0]
 
+# Board name
+set ::board_name [lindex $argv 1]
+
 # Build directory
-set ::build_dir [lindex $argv 1]
+set ::build_dir [lindex $argv 2]
 
 # Report utils directory
-set ::reports_util [lindex $argv 2]
+set ::reports_util [lindex $argv 3]
 
 # Project directory
 set ::prj_dir "$build_dir/$design_name/vivado_prj"
@@ -41,7 +44,7 @@ file mkdir $reports_dir
 # =================== #
 
 # open project
-open_project ${prj_dir}/hero_exilzcu102.xpr
+open_project ${prj_dir}/hero_exil$board_name\.xpr
 update_compile_order -fileset sources_1
 
 # ================================================= #
