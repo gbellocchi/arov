@@ -20,13 +20,14 @@
 
 ROOT := $(patsubst %/,%, $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
-BUILD_TARGET 	:= ov_empty
+BUILD_TARGET 	?= ov_empty
 BUILD_DIR 		:= $(ROOT)/build
 
-BOARD_TARGET 	:= zcu102
+BOARD_TARGET 	?= zcu102
 
 UTILS_HERO 		:= $(ROOT)/utils/hero
 UTILS_VIVADO 	:= $(ROOT)/utils/vivado_ips
+UTILS_POWER 	:= $(ROOT)/utils/power
 UTILS_REPORTS 	:= $(ROOT)/utils/reports
 
 BENDER 			:= $(ROOT)/../bender script vivado
@@ -47,7 +48,19 @@ all: build_target fpga_output reports
 # =====================================================================
 
 reports_fpga:
-	@$(VIVADO) $(VIVADO_OPT) -source $(UTILS_REPORTS)/reports.tcl -tclargs $(BUILD_TARGET) $(BOARD_TARGET) $(BUILD_DIR) $(UTILS_REPORTS)
+	@$(VIVADO) $(VIVADO_OPT) \
+		-source $(UTILS_REPORTS)/reports.tcl \
+		-tclargs $(BUILD_TARGET) $(BOARD_TARGET) $(BUILD_DIR) $(UTILS_REPORTS)
+
+# =====================================================================
+# Recipes:		FPGA power simulation
+# =====================================================================
+
+fpga_power_sim: # clean_power
+	@$(VIVADO) $(VIVADO_OPT) \
+		-source $(UTILS_POWER)/power_sim.tcl \
+		-tclargs $(BUILD_DIR)/$(BUILD_TARGET)/vivado_power_prj $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips
+
 
 # =====================================================================
 # Recipes:		FPGA project
@@ -92,6 +105,9 @@ $(BUILD_DIR)/$(BUILD_TARGET):
 # =====================================================================
 # Recipes:		Utils
 # ===================================================================== 
+
+clean_power:
+	@rm -rf $(BUILD_DIR)/$(BUILD_TARGET)/vivado_power_prj
 
 clean_target:
 	@rm -rf $(BUILD_DIR)/$(BUILD_TARGET)
