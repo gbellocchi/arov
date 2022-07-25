@@ -22,7 +22,8 @@ VSIM_PATH 				:= $(realpath ${ROOT}/vsim )
 # Description:  Choose a target overlay configuration to be generated.
 # =====================================================================
 
-TARGET_OV               := testRteMc
+TARGET_OV               := ov_mdc_aes_128
+TARGET_BOARD            := zcu104
 
 GENOV 					= ${ROOT}/../genov
 
@@ -36,8 +37,8 @@ BENDER_LOCK				= ${SRC_PATH}/${TARGET_OV}/Bender.lock
 # Description:  Export reports for DSE.
 # =====================================================================
 
-reports_export_archex:
-	cd ${ARCHEX_PATH} && make -s get_reports REPORT_PATH=${FPGA_PATH}/build/${TARGET_OV}/reports
+reports_export:
+	cd ${ARCHEX_PATH} && make -s get_reports REPORT_PATH=${FPGA_PATH}/build/${TARGET_OV}/reports REPORT_TARGET=${TARGET_OV}
 
 # =====================================================================
 # Description:  FPGA build.
@@ -45,13 +46,13 @@ reports_export_archex:
 fpga: build_fpga reports_fpga
 
 reports_fpga:
-	cd ${FPGA_PATH} && make -s $@ BUILD_TARGET=${TARGET_OV}
+	cd ${FPGA_PATH} && make -s $@ BUILD_TARGET=${TARGET_OV} BOARD_TARGET=${TARGET_BOARD}
 
 reports_ls:
 	ls ${FPGA_PATH}/build/${TARGET_OV}/reports
 
 build_fpga: bender ${BENDER_PKG} ${BENDER_LOCK}
-	cd ${FPGA_PATH} && make -s $@ BUILD_TARGET=${TARGET_OV}
+	cd ${FPGA_PATH} && make -s $@ BUILD_TARGET=${TARGET_OV} BOARD_TARGET=${TARGET_BOARD}
 	
 # =====================================================================
 # Description:  Validation test using QuestaSim.
