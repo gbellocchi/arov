@@ -1,5 +1,5 @@
 # =====================================================================
-# Project:      Implementation reports
+# Project:      FPGA build
 # Title:        reports.tcl
 # Description:  TCL script to generate Vivado reports.
 #

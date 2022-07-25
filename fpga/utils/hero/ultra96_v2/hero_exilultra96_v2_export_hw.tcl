@@ -1,15 +1,7 @@
 # =====================================================================
-# Project:      HERO
+# Project:      FPGA build
 # Title:        hero_exilultra96_v2_export_hw.tcl
-# Description:  TCL script to export HW design files.
-#
-# $Date:        15.09.2021
-# =====================================================================
-#
-# Copyright (C) 2021 University of Modena and Reggio Emilia..
-#
-# Author: Gianluca Bellocchi, University of Modena and Reggio Emilia.
-#
+# Description:  Export hardware design files.
 # =====================================================================
 
 # Design name.

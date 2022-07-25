@@ -1,5 +1,5 @@
 # =====================================================================
-# Project:      Implementation reports
+# Project:      FPGA build
 # Title:        get_util_csv.tcl
 # Description:  TCL script to create CSV report without interaction with GUI.
 #

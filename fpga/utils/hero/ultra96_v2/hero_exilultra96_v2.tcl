@@ -1,3 +1,9 @@
+# =====================================================================
+# Project:      FPGA build
+# Title:        hero_exilultra96_v2.tcl
+# Description:  FPGA build of heterogeneous system on Zynq Ultrascale+.
+# =====================================================================
+
 # Vivado project location.
 set prj_dir [lindex $argv 0]
 puts "Vivado project is going to be located in ${prj_dir}\."

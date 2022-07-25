@@ -1,3 +1,9 @@
+# =====================================================================
+# Project:      FPGA build
+# Title:        pulp_txilzu3eg.tcl
+# Description:  Create PULP IP and add it to Vivado IP libraries.
+# =====================================================================
+
 create_project pulp_txilzu3eg ./pulp_txilzu3eg -part xczu3eg-sbva484-1-e
 set_property board_part em.avnet.com:ultra96v2:part0:1.0 [current_project]
 

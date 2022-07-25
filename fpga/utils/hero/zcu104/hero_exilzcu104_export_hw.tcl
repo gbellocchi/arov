@@ -1,16 +1,9 @@
 # =====================================================================
-# Project:      HERO
+# Project:      FPGA build
 # Title:        hero_exilzcu104_export_hw.tcl
-# Description:  TCL script to export HW design files.
-#
-# $Date:        15.09.2021
+# Description:  Export hardware design files.
 # =====================================================================
-#
-# Copyright (C) 2021 University of Modena and Reggio Emilia..
-#
-# Author: Gianluca Bellocchi, University of Modena and Reggio Emilia.
-#
-# =====================================================================
+
 # Design name.
 set design_name [lindex $argv 0]
 puts "Design name - $design_name"
