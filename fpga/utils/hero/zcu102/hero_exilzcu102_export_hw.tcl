@@ -1,7 +1,7 @@
 # =====================================================================
 # Project:      HERO
-# Title:        fpga_out_files.tcl
-# Description:  TCL script to output important design files.
+# Title:        hero_exilzcu102_export_hw.tcl
+# Description:  TCL script to export HW design files.
 #
 # $Date:        15.09.2021
 # =====================================================================
