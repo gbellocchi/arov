@@ -32,7 +32,9 @@ UTILS_REPORTS 	:= $(ROOT)/utils/reports
 BENDER 			:= $(ROOT)/../bender script vivado
 BENDER_FILES 	:= $(ROOT)/../bender $(ROOT)/../Bender.yml $(ROOT)/../Bender.lock
 
-VIVADO 			:= vitis-2019.2 vivado
+ifeq ($(VIVADO),)
+VIVADO := vitis-2019.2 vivado
+endif
 VIVADO_OPT 		:=-mode batch
 
 # =====================================================================
