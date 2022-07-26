@@ -47,6 +47,10 @@ set ::tb_post_synth "$power_util/post_synth_tb_exilzcu102.sv"
 set ::simulation_mode "post-synthesis"
 set ::simulation_type "functional"
 
+# Simulation settings
+set ::simulation_runtime "1ps"
+set ::simulation_saif_scope "arov_tb/hero_exilzcu102_i"
+
 # =============================== #
 # Create power simulation project #
 # =============================== #
@@ -56,6 +60,12 @@ puts "Opening Vivado project located in $prj_dir\."
 
 # Create new project
 open_project $prj_dir/hero_exilzcu102.xpr
+
+# Preliminary check on existance of previously define SAIF files
+if { [file exists "$prj_dir/hero_exilzcu102.sim/sim_1/synth/func/xsim/$report_name\.saif"]} {               
+  send_msg_id {USER 1-1} ERROR {SAIF object already exists: cannot overwrite. Delete old object or change file name.}
+  return -code error
+}
 
 # ========= #
 # Testbench #
@@ -80,11 +90,16 @@ update_compile_order -fileset sim_1
 # Settings simulation to memorize the switching activity
 foreach fileset [list sim_1] {
 
+# NB: This initial setting will commute on all design signals, etc. but this 
+# is not possible in general for the implementation of arov as there are too many
+# HW components. After the first run, a new SAIF file is created with a smaller log.
+# Hence, that is the one that will be used to generate the power report.
+
 # Simulation duration
-  set_property -name {xsim.simulate.runtime} -value {100 ns} -objects [get_filesets $fileset]
+  set_property -name {xsim.simulate.runtime} -value {$simulation_time} -objects [get_filesets $fileset]
 
 # Set scope that you want to investigate
-  set_property -name {xsim.simulate.saif_scope} -value {arov_tb/hero_exilzcu102_i} -objects [get_filesets $fileset]
+  set_property -name {xsim.simulate.saif_scope} -value {$simulation_saif_scope} -objects [get_filesets $fileset]
 
 # SAIF file (with switching activity)
 # Saved under:
@@ -96,7 +111,7 @@ foreach fileset [list sim_1] {
 }
 
 # Run Post-synthesis Functional Simulation		
-# It is faster than the Timing because It does not consider delays. 
+# It is faster than the timing one because It does not consider delays. 
 # Results do not change because the model only consider commutations.	
 launch_simulation -mode $simulation_mode -type $simulation_type
 
@@ -114,26 +129,22 @@ open_saif "$prj_dir/hero_exilzcu102.sim/sim_1/synth/func/xsim/$report_name\.saif
 
 # Set different scope (after initial set up)
 current_scope /arov_tb/hero_exilzcu102_i
-# current_scope /arov_tb/hero_exilzcu102_i/i_pulp
 
 # To extract the switching activity, the SAIF can be logged with 
 # specific wires, signals, or regs. The more the monitored components,
 # the bigger the SAIF, the more demanding is the burden for Vivado.
 
-# # Get information from all hierarchy levels starting from current scope (recursive)
-# log_saif [get_objects -r *]
-
 # Get information from components of current scope
 log_saif [ get_objects * ]
 
 # Run simulation for a certain time period (you can specify both time value and unit)
-run 1ps
+run $simulation_time
 
 # Close SAIF (and save simulation values)
 close_saif
 
-# Genereate power report
-# 		✔ Interactive report file --> Here are all info to analyze it later
-# 		✔ Export to file --> Not as detailed as previous, but is enough most of the times
+# Generate power reports as:
+# - Interactive report file --> Here are all info to analyze it later
+# - Export to file --> Not as detailed as previous, but is enough most of the times
 read_saif "$prj_dir/hero_exilzcu102.sim/sim_1/synth/func/xsim/$report_name\.saif"
 report_power -file "$report_dir/$report_name\.txt" -rpx "$report_dir/$report_name\.rpx" -name "$report_name"
