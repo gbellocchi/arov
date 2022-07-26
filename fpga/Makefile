@@ -28,7 +28,7 @@ BOARD_TARGET 	?= zcu102
 UTILS_HERO 		:= $(ROOT)/utils/hero
 UTILS_VIVADO 	:= $(ROOT)/utils/vivado_ips
 UTILS_POWER 	:= $(ROOT)/utils/power
-UTILS_REPORTS 	:= $(ROOT)/utils/reports
+UTILS_AREA 		:= $(ROOT)/utils/area
 
 BENDER 			:= $(ROOT)/../bender script vivado
 BENDER_FILES 	:= $(ROOT)/../bender $(ROOT)/../Bender.yml $(ROOT)/../Bender.lock
@@ -47,20 +47,15 @@ all: build_target fpga_output reports
 # Recipes:		Design reports
 # =====================================================================
 
-reports_fpga:
+report_area:
 	@$(VIVADO) $(VIVADO_OPT) \
-		-source $(UTILS_REPORTS)/reports.tcl \
-		-tclargs $(BUILD_TARGET) $(BOARD_TARGET) $(BUILD_DIR) $(UTILS_REPORTS)
+		-source $(UTILS_AREA)/$@.tcl \
+		-tclargs $(BUILD_TARGET) $(BOARD_TARGET) $(BUILD_DIR) $(UTILS_AREA)
 
-# =====================================================================
-# Recipes:		FPGA power simulation
-# =====================================================================
-
-fpga_power_sim: # clean_power
+report_power: clean_power
 	@$(VIVADO) $(VIVADO_OPT) \
-		-source $(UTILS_POWER)/power_sim.tcl \
-		-tclargs $(BUILD_DIR)/$(BUILD_TARGET)/vivado_power_prj $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips
-
+		-source $(UTILS_POWER)/$@.tcl \
+		-tclargs $(BUILD_TARGET) $(BOARD_TARGET) $(BUILD_DIR) $(UTILS_POWER) 
 
 # =====================================================================
 # Recipes:		FPGA project
@@ -107,8 +102,7 @@ $(BUILD_DIR)/$(BUILD_TARGET):
 # ===================================================================== 
 
 clean_power:
-	@rm -rf $(BUILD_DIR)/$(BUILD_TARGET)/vivado_power_prj
-
+	@rm -rf $(BUILD_DIR)/$(BUILD_TARGET)/vivado_prj/hero_exilzcu102.sim/sim_1/synth/func/xsim/*.saif
 clean_target:
 	@rm -rf $(BUILD_DIR)/$(BUILD_TARGET)
 
