@@ -47,6 +47,8 @@ all: build_target fpga_output reports
 # Recipes:		Design reports
 # =====================================================================
 
+report_fpga: report_area
+
 report_area:
 	@$(VIVADO) $(VIVADO_OPT) \
 		-source $(UTILS_AREA)/$@.tcl \
