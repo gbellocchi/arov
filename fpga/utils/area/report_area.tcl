@@ -28,8 +28,8 @@ set ::board_name [lindex $argv 1]
 # Build directory
 set ::build_dir [lindex $argv 2]
 
-# Report utils directory
-set ::reports_util [lindex $argv 3]
+# Area utils directory
+set ::area_utils [lindex $argv 3]
 
 # Project directory
 set ::prj_dir "$build_dir/$design_name/vivado_prj"
@@ -72,7 +72,7 @@ if {[regexp -- $design_run_name $runlist]} {
         open_run $design_run_name
 
         # Export report into CSV
-        source $reports_util/get_util_csv.tcl
+        source $area_utils/get_util_csv.tcl
 
     }
 }
@@ -102,7 +102,7 @@ if {[regexp -- $design_run_name $runlist]} {
         open_run $design_run_name
 
         # Export report into CSV
-        source $reports_util/get_util_csv.tcl
+        source $area_utils/get_util_csv.tcl
 
     }
 }
