@@ -79,10 +79,14 @@ puts "Opening Vivado project located in $prj_dir\."
 open_project $prj_dir/hero_exilzcu102.xpr
 
 # Preliminary check on existance of previously define SAIF files
-set simfilelist [ glob "$prj_dir/hero_exilzcu102.sim/sim_1/synth/func/xsim/*" ]
-if {[regexp -- ".saif" $simfilelist]} {           
-  send_msg_id {USER 1-1} ERROR {SAIF object already exists: cannot overwrite. Delete old object or change file name.}
-  return -code error
+set sim_dir_list [glob -nocomplain -directory "$prj_dir/hero_exilzcu102.sim/" -type d *]
+set sim_file_list [ glob -nocomplain -directory $prj_dir/hero_exilzcu102.sim/sim_1/synth/func/xsim -type f * ]
+
+if {[llength $sim_dir_list] > 0} {
+  if {[regexp -- ".saif" $sim_file_list]} {           
+    send_msg_id {USER 1-1} ERROR {SAIF object already exists: cannot overwrite. Delete old object or change file name.}
+    return -code error
+  }
 }
 
 # ========= #
