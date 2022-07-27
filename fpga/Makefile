@@ -104,7 +104,7 @@ $(BUILD_DIR)/$(BUILD_TARGET):
 # ===================================================================== 
 
 clean_power:
-	@rm -rf $(BUILD_DIR)/$(BUILD_TARGET)/vivado_prj/hero_exilzcu102.sim/sim_1/synth/func/xsim/*.saif
+	@cd $(BUILD_DIR)/$(BUILD_TARGET)/vivado_prj && find . -name "*.saif" -type f -delete
 clean_target:
 	@rm -rf $(BUILD_DIR)/$(BUILD_TARGET)
 
