@@ -47,7 +47,7 @@ all: build_target fpga_output reports
 # Recipes:		Design reports
 # =====================================================================
 
-report_fpga: report_area
+reports_fpga: report_area
 
 report_area:
 	@$(VIVADO) $(VIVADO_OPT) \
@@ -57,7 +57,7 @@ report_area:
 report_power: clean_power
 	@$(VIVADO) $(VIVADO_OPT) \
 		-source $(UTILS_POWER)/$@.tcl \
-		-tclargs $(BUILD_TARGET) $(BOARD_TARGET) $(BUILD_DIR) $(UTILS_POWER) 
+		-tclargs $(BUILD_TARGET) $(BOARD_TARGET) $(BUILD_DIR) $(UTILS_POWER)
 
 # =====================================================================
 # Recipes:		FPGA project
