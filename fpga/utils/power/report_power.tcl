@@ -49,11 +49,28 @@ set ::simulation_type "functional"
 
 # Simulation settings
 set ::simulation_runtime "1ps"
+set ::simulation_saif_name "$design_name"
 set ::simulation_saif_scope "arov_tb/hero_exilzcu102_i"
 
-# =============================== #
-# Create power simulation project #
-# =============================== #
+# Print important variables
+puts "\n-- TCL SCRIPT VARIABLES --\n"
+
+puts "Targets -- Design name: $design_name"
+puts "Targets -- Board name: $board_name"
+puts "Targets -- Report name: $report_name\n"
+
+puts "Simulation -- mode: $simulation_mode"
+puts "Simulation -- type: $simulation_type"
+puts "Simulation -- runtime: $simulation_runtime"
+puts "Simulation -- SAIF name: $simulation_saif_name"
+puts "Simulation -- SAIF scope: $simulation_saif_scope\n"
+
+puts "Directories -- Report: $report_dir"
+puts "Directories -- Project: $prj_dir\n"
+
+# ============ #
+# Open project #
+# ============ #
 
 # Vivado project location.
 puts "Opening Vivado project located in $prj_dir\."
@@ -62,7 +79,8 @@ puts "Opening Vivado project located in $prj_dir\."
 open_project $prj_dir/hero_exilzcu102.xpr
 
 # Preliminary check on existance of previously define SAIF files
-if { [file exists "$prj_dir/hero_exilzcu102.sim/sim_1/synth/func/xsim/$report_name\.saif"]} {               
+set simfilelist [ glob "$prj_dir/hero_exilzcu102.sim/sim_1/synth/func/xsim/*" ]
+if {[regexp -- ".saif" $simfilelist]} {           
   send_msg_id {USER 1-1} ERROR {SAIF object already exists: cannot overwrite. Delete old object or change file name.}
   return -code error
 }
@@ -146,5 +164,5 @@ close_saif
 # Generate power reports as:
 # - Interactive report file --> Here are all info to analyze it later
 # - Export to file --> Not as detailed as previous, but is enough most of the times
-read_saif "$prj_dir/hero_exilzcu102.sim/sim_1/synth/func/xsim/$report_name\.saif"
+read_saif "$prj_dir/hero_exilzcu102.sim/sim_1/synth/func/xsim/$simulation_saif_name\.saif"
 report_power -file "$report_dir/$report_name\.txt" -rpx "$report_dir/$report_name\.rpx" -name "$report_name"
