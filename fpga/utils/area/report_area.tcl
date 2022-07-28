@@ -37,7 +37,12 @@ set ::prj_dir "$build_dir/$design_name/vivado_prj"
 # Reports directory
 set ::reports_dir "$build_dir/$design_name/reports"
 
-file mkdir $reports_dir
+# Create report directory
+set reports_dir_list [glob -nocomplain -directory "$build_dir/$design_name" -type d "reports"]
+
+if {[llength $reports_dir_list] == 0} {
+  file mkdir $reports_dir
+}
 
 # =================== #
 # Open target project #

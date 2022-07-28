@@ -163,6 +163,13 @@ close_saif
 # Generate power report #
 # ===================== #
 
+# Create report directory
+set report_dir_list [glob -nocomplain -directory "$report_dir" -type d *]
+
+if {[llength $report_dir_list] == 0} {
+  file mkdir $report_dir
+}
+
 # Generate power reports as:
 # - Interactive report file --> Here are all info to analyze it later
 # - Export to file --> Not as detailed as previous, but is enough most of the times

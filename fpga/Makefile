@@ -47,7 +47,7 @@ all: build_target fpga_output reports
 # Recipes:		Design reports
 # =====================================================================
 
-reports_fpga: report_area
+reports_fpga: report_area report_power
 
 report_area:
 	@$(VIVADO) $(VIVADO_OPT) \
@@ -66,7 +66,7 @@ report_power: clean_power
 open_design:
 	@$(VIVADO) $(BUILD_DIR)/$(BUILD_TARGET)/vivado_prj/hero_exil$(BOARD_TARGET).xpr
 
-build_fpga: build_target fpga_output
+build_fpga: build_target
 
 fpga_output:
 	@$(VIVADO) $(VIVADO_OPT) -source $(UTILS_HERO)/$(BOARD_TARGET)/hero_exil$(BOARD_TARGET)_export_hw.tcl -tclargs $(BUILD_TARGET) $(BUILD_DIR)
