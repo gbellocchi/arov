@@ -68,10 +68,15 @@ open_design:
 
 build_fpga: build_target
 
+build_fpga_date_22: check_exist clean_target build_pulp
+	@$(VIVADO) $(VIVADO_OPT) \
+		-source $(UTILS_HERO)/$(BOARD_TARGET)/date_22_zcu102.tcl \
+		-tclargs $(BUILD_DIR)/$(BUILD_TARGET)/vivado_prj $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips
+
 fpga_output:
 	@$(VIVADO) $(VIVADO_OPT) -source $(UTILS_HERO)/$(BOARD_TARGET)/hero_exil$(BOARD_TARGET)_export_hw.tcl -tclargs $(BUILD_TARGET) $(BUILD_DIR)
 
-build_target: clean_target build_pulp
+build_target: check_exist clean_target build_pulp
 	@$(VIVADO) $(VIVADO_OPT) \
 		-source $(UTILS_HERO)/$(BOARD_TARGET)/hero_exil$(BOARD_TARGET).tcl \
 		-tclargs $(BUILD_DIR)/$(BUILD_TARGET)/vivado_prj $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips
@@ -103,12 +108,15 @@ $(BUILD_DIR)/$(BUILD_TARGET):
 # Recipes:		Utils
 # ===================================================================== 
 
+check_exist:
+	@if [ -d "$(BUILD_DIR)/$(BUILD_TARGET)" ]; then (echo "A project for target <$(BUILD_TARGET)> already exists."; exit 1) ; fi
+
 clean_power:
 	@cd $(BUILD_DIR)/$(BUILD_TARGET)/vivado_prj && find . -name "*.saif" -type f -delete
 clean_target:
 	@rm -rf $(BUILD_DIR)/$(BUILD_TARGET)
 
-clean_pulp_fpga:
+clean_pulp_fpga: check_exist
 	@rm -rf $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips/{component.xml,define_*.tcl}
 	@rm -rf $(BUILD_DIR)/$(BUILD_TARGET)/vivado_ips/{pulp_txil*,xgui}
 	@rm -f $(BUILD_DIR)/$(BUILD_TARGET)/{,vivado_ips/}vivado*.{jou,log,str}
