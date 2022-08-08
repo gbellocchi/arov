@@ -28,7 +28,7 @@ set_property -dict [list \
   CONFIG.PSU__USE__S_AXI_GP2 {0} \
   CONFIG.PSU__USE__S_AXI_GP3 {1} \
   CONFIG.PSU__USE__IRQ1 {1} \
-  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ {50} \
+  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ {100} \
 ] [get_bd_cells i_zynq_ps]
 connect_bd_net [get_bd_pins i_zynq_ps/pl_clk0] \
   [get_bd_pins i_zynq_ps/saxihp1_fpd_aclk]
