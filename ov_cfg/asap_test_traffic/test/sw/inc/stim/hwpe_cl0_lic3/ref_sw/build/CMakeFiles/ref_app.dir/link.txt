@@ -1,1 +1,0 @@
-gcc  -g -O3 -std=c99 -O3 -DNDEBUG  -rdynamic CMakeFiles/ref_app.dir/src/main.c.o  -o ref_app  -L/scratch2/gbellocchi/ethz/arov/ov_cfg/asap_test_traffic/test/sw/inc/stim/hwpe_cl0_lic3/ref_sw/build -Wl,-rpath,/scratch2/gbellocchi/ethz/arov/ov_cfg/asap_test_traffic/test/sw/inc/stim/hwpe_cl0_lic3/ref_sw/build libLibsModule.a -lpthread 
