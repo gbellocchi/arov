@@ -22,8 +22,8 @@ VSIM_PATH 				:= $(realpath ${ROOT}/vsim )
 # Description:  Choose a target overlay configuration to be generated.
 # =====================================================================
 
-TARGET_OV               := ov_mdc_aes_128
-TARGET_BOARD            := zcu104
+TARGET_OV               := date22_16cl_1tg
+TARGET_BOARD            := zcu102
 
 GENOV 					= ${ROOT}/../genov
 
@@ -45,11 +45,16 @@ reports_export:
 # =====================================================================
 fpga: build_fpga reports_fpga
 
+fpga-date-22: build_fpga_date_22 reports_fpga
+
 reports_fpga:
 	cd ${FPGA_PATH} && make -s $@ BUILD_TARGET=${TARGET_OV} BOARD_TARGET=${TARGET_BOARD}
 
 reports_ls:
 	ls ${FPGA_PATH}/build/${TARGET_OV}/reports
+
+build_fpga_date_22: bender ${BENDER_PKG} ${BENDER_LOCK}
+	cd ${FPGA_PATH} && make -s $@ BUILD_TARGET=${TARGET_OV} BOARD_TARGET=${TARGET_BOARD}
 
 build_fpga: bender ${BENDER_PKG} ${BENDER_LOCK}
 	cd ${FPGA_PATH} && make -s $@ BUILD_TARGET=${TARGET_OV} BOARD_TARGET=${TARGET_BOARD}
