@@ -113,6 +113,7 @@ check_exist:
 
 clean_power:
 	@cd $(BUILD_DIR)/$(BUILD_TARGET)/vivado_prj && find . -name "*.saif" -type f -delete
+	
 clean_target:
 	@rm -rf $(BUILD_DIR)/$(BUILD_TARGET)
 

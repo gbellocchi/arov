@@ -20,7 +20,7 @@ echo ""
 echo "\[tcl\] >> Starting simulation of overlay configuration <$target_ov>"
 echo ""
 
-vsim -voptargs="+acc" -t 1ps -warning 3009 overlay_tb
+vsim -suppress 16154 -suppress 14408 -suppress 3839 -voptargs="+acc" -t 1ps -warning 3009 overlay_tb
 set StdArithNoWarnings 1
 set NumericStdNoWarnings 1
 set BreakOnAssertion 2;# break also on assertion errors

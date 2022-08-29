@@ -9,3 +9,5 @@ Bender.local
 
 /component.xml
 /xgui
+/vivado*
+/transcript

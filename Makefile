@@ -22,8 +22,8 @@ VSIM_PATH 				:= $(realpath ${ROOT}/vsim )
 # Description:  Choose a target overlay configuration to be generated.
 # =====================================================================
 
-TARGET_OV               := date22_16cl_1tg
-TARGET_BOARD            := zcu102
+TARGET_OV               ?= date22_16cl_1tg
+TARGET_BOARD            ?= zcu102
 
 GENOV 					= ${ROOT}/../genov
 
@@ -58,7 +58,10 @@ build_fpga_date_22: bender ${BENDER_PKG} ${BENDER_LOCK}
 
 build_fpga: bender ${BENDER_PKG} ${BENDER_LOCK}
 	cd ${FPGA_PATH} && make -s $@ BUILD_TARGET=${TARGET_OV} BOARD_TARGET=${TARGET_BOARD}
-	
+
+clean-fpga:
+	cd ${FPGA_PATH} && make clean_target BUILD_TARGET=${TARGET_OV} BOARD_TARGET=${TARGET_BOARD}
+
 # =====================================================================
 # Description:  Validation test using QuestaSim.
 # =====================================================================
