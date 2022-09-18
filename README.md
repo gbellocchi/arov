@@ -9,6 +9,15 @@ The overlay generator should be cloned at first:
 git@github.com:gbellocchi/arov.git
 ```
 
+### AROV Environment
+Set `HERO_OV_HW_EXPORT` to the root of AROV (e.g. `/home/user-name/workspace_user/arov`).
+
+### External Sources
+To pull the required Git submodules, run: 
+```branch
+git submodule update --init --recursive
+```
+
 ### Structure of the Repository
 The repository is the following:
 
@@ -24,12 +33,6 @@ Version control is currently managed in a hybrid way:
 - The RTL dependencies are flattened in the *genov* Git repository, meaning that once a RTL component is added, this does not behave as a submodules, but is added to the file tree with a `git add`. This has the advantage to make modifications possible with no need to modify the remote repository. The latter operation can be realized once the modifications are finally stable.
 - The information about the RTL tree dependencies is propagated to tools, such as *vivado* and *QuestaSim*, with the employment of [Bender](https://github.com/fabianschuiki/bender#configuration-format-benderyml-benderlocal). The latter is used to generate configuration scripts that feed the target tool with the proper source file listings and compilation scripts.
 - Additional tools, such as `GenOv` figure as Git submodules from the perspective of AROV.
-
-### External Sources
-To pull the required Git submodules, run: 
-```branch
-git submodule update --init --recursive
-```
 
 ## Overlay generation
 
