@@ -1,3 +1,3 @@
 [submodule "genov"]
 	path = genov
-	url = git@iis-git.ee.ethz.ch:gianluca.bellocchi/genov.git
+	url = https://github.com/gbellocchi/genov.git
