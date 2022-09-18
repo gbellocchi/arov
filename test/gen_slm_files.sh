@@ -45,7 +45,7 @@ cd $dir_slm_files
 # partition L1 binaries for RTL simulation
 if [ -f "$app_path/${app_name}_l1.slm" ]; then
     $slm_conv --swap-endianness -f "$app_path/${app_name}_l1.slm" \
-    -w 32 -P 32 -S 1 -n 2048 -s 0x10000000 -F l1_%01S_%01P.slm
+    -w 32 -P 16 -S 1 -n 2048 -s 0x10000000 -F l1_%01S_%01P.slm
 else
     error_exit "Missing L1 binaries at $app_path/. Aborting."
 fi

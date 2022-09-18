@@ -11,6 +11,7 @@ git@github.com:gbellocchi/arov.git
 
 ### AROV Environment
 Set `HERO_OV_HW_EXPORT` to the root of AROV (e.g. `/home/user-name/workspace_user/arov`).
+Set `VSIM_PATH` to the vsim of AROV (e.g. `/home/user-name/workspace_user/arov/vsim`).
 
 ### External Sources
 To pull the required Git submodules, run: 

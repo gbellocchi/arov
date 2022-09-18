@@ -49,7 +49,15 @@ elif [ $IIS -eq 1 ]; then
         vsim-10.7b -c -do 'source run.tcl; quit -code $quitCode'
     fi
 else
-    # Run in GUI mode and silence console output.
-    echo "Standard setup - GUI mode"
-    vsim -do 'source run.tcl' &>/dev/null
+    if [ $vsim_gui -eq 1 ]; then
+        # Run in GUI mode and silence console output.
+        echo "Standard setup - GUI mode"
+        sleep 1s
+        vsim -do 'source run.tcl' &>/dev/null
+    else
+        # Run in console-only mode.
+        echo "Standard setup - Console-only mode"
+        sleep 1s
+        vsim -c -do 'source run.tcl; quit -code $quitCode'
+    fi
 fi

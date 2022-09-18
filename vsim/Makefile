@@ -25,7 +25,7 @@ APP_PATH ?=
 # Description:  QuestaSim GUI.
 # =====================================================================
 
-GUI := 1
+GUI := 0
 
 all: compile gen_slm_files start_sim
 
