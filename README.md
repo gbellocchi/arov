@@ -7,7 +7,7 @@ As proposed in [1], ArOv overlays are based on the RISC-V instruction set archit
 ## Getting Started
 
 ### Environment
-Source [setup.sh](../setup.sh) to invoke the environment needed to interact with the components of this repository.
+Source [setup.sh](https://github.com/gbellocchi/xil_open_hw_23/blob/dev/setup.sh) to invoke the environment needed to interact with the components of this repository.
   
 ### External Sources
 
