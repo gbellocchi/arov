@@ -1,5 +1,5 @@
 
-# Accelerator-Rich Overlay (ArOv)
+# FPGA Overlay
 The repository comprises all the open-source hardware and scripts to support the hardware implementation of our **FPGA Overlays**.
 
 ***If you want to use _ArOv_, you can cite our paper [1].***
@@ -19,9 +19,9 @@ git submodule update --init --recursive
 ### Structure of the Repository
 The repository is the following:
 
--  `ov_cfg/` - Collection of generated source files to customize accelerator-rich system.
+-  `ov_cfg/` - Collection of generated source files to customize the overlay system.
 -  `deps/` - SystemVerilog dependencies. Basically, the overlay IPs (RISC-V core, DMA, memory, etc.).
--  `test/` - SystemVerilog testbench to simulate the behavior of the target accelerator-rich system.
+-  `test/` - SystemVerilog testbench to simulate the behavior of the target overlay system.
 -  `vsim/` - Scripts to set up and run simulations.
 -  `fpga/` - FPGA build flow and associated scripts.
 
